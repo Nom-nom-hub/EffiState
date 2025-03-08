@@ -253,6 +253,11 @@ export function createStore(initialState = {}, options = {}) {
       computedValues[key] = computeFunctions[key](state);
     }
     
+    // Track history if enabled
+    if (historyEnabled) {
+      addToHistory({...state});
+    }
+    
     return result;
   };
   
