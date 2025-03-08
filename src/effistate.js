@@ -418,9 +418,6 @@ export function createStore(initialState = {}, options = {}) {
       history.shift();
       historyIndex--;
     }
-    
-    // Debug: Show the current history
-    console.log('History:', history.map(h => h.count), 'Index:', historyIndex);
   };
   
   /**
@@ -429,8 +426,6 @@ export function createStore(initialState = {}, options = {}) {
    * @returns {Object} History control methods
    */
   const enableHistory = (limit) => {
-    console.log('enableHistory called with limit:', limit);
-    
     if (historyEnabled) return { undo, redo };
     
     history = [];
@@ -439,7 +434,6 @@ export function createStore(initialState = {}, options = {}) {
     historyEnabled = true;
     
     // Add initial state to history
-    console.log('Initial state:', state);
     const initialState = JSON.parse(JSON.stringify(state));
     addToHistory(initialState);
     
@@ -449,13 +443,11 @@ export function createStore(initialState = {}, options = {}) {
   // Override the set function to add state to history
   const originalSet = set;
   const historyTrackingSet = (newState) => {
-    console.log('historyTrackingSet called with:', newState);
     // Apply the changes first
     const result = originalSet(newState);
     
     // Then add to history if enabled
     if (historyEnabled) {
-      console.log('Current state after changes:', state);
       const currentState = JSON.parse(JSON.stringify(state));
       addToHistory(currentState);
     }
@@ -468,23 +460,17 @@ export function createStore(initialState = {}, options = {}) {
    * @returns {boolean} Whether undo was successful
    */
   const undo = () => {
-    console.log('undo called, historyIndex:', historyIndex, 'history:', history.map(h => h.count));
-    
     if (!historyEnabled || historyIndex <= 0) {
-      console.log('History not enabled or at beginning of history');
       return false;
     }
     
     // Get previous state
     historyIndex--;
-    console.log('New historyIndex:', historyIndex);
     
     const prevState = history[historyIndex];
-    console.log('Previous state:', prevState);
     
     // Keep track of old state for notifications
     const oldState = { ...state };
-    console.log('Old state before undo:', oldState);
     
     // Clear current state
     for (const key in state) {
@@ -496,8 +482,6 @@ export function createStore(initialState = {}, options = {}) {
     for (const key in deepCopy) {
       state[key] = deepCopy[key];
     }
-    
-    console.log('New state after undo:', state);
     
     // We need to manually update computed values here
     for (const key in computeFunctions) {
@@ -793,9 +777,7 @@ export function withLogger(store) {
     ...store,
     set: (newState) => {
       const prevState = store.get();
-      console.log('Prev State:', prevState);
       originalSet(newState);
-      console.log('New State:', store.get());
     }
   };
 }
