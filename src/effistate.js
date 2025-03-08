@@ -349,7 +349,7 @@ export function createStore(initialState = {}, options = {}) {
   // For state history (initialize lazily)
   let history;
   let historyIndex;
-  let historyLimit;
+  let stateHistoryLimit;  // Renamed to be more specific
   let historyEnabled = false;
 
   // Fast references and cached values
@@ -468,7 +468,7 @@ export function createStore(initialState = {}, options = {}) {
     if (!historyEnabled) {
       history = [];
       historyIndex = -1;
-      historyLimit = limit || 50;
+      stateHistoryLimit = limit || 50;
       historyEnabled = true;
       
       // Store initial state
