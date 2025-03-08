@@ -401,7 +401,7 @@ export function createStore(initialState = {}, options = {}) {
   const addToHistory = (stateToAdd) => {
     if (!historyEnabled) return;
     
-    // Create a deep, independent copy of state
+    // Make an independent copy of the state
     const stateCopy = JSON.parse(JSON.stringify(stateToAdd));
     
     // If we're in the middle of history, truncate the future states
@@ -418,14 +418,19 @@ export function createStore(initialState = {}, options = {}) {
       history.shift();
       historyIndex--;
     }
+    
+    // Debug: Show the current history
+    console.log('History:', history.map(h => h.count), 'Index:', historyIndex);
   };
-
+  
   /**
    * Enable history tracking for time-travel
    * @param {number} limit - Max number of history entries
    * @returns {Object} History control methods
    */
   const enableHistory = (limit) => {
+    console.log('enableHistory called with limit:', limit);
+    
     if (historyEnabled) return { undo, redo };
     
     history = [];
@@ -434,59 +439,73 @@ export function createStore(initialState = {}, options = {}) {
     historyEnabled = true;
     
     // Add initial state to history
-    addToHistory({...state});
+    console.log('Initial state:', state);
+    const initialState = JSON.parse(JSON.stringify(state));
+    addToHistory(initialState);
     
     return { undo, redo };
   };
-
+  
   // Override the set function to add state to history
-  // We need to track history AFTER state changes, not during them
   const originalSet = set;
   const historyTrackingSet = (newState) => {
+    console.log('historyTrackingSet called with:', newState);
     // Apply the changes first
     const result = originalSet(newState);
     
     // Then add to history if enabled
     if (historyEnabled) {
-      addToHistory({...state});
+      console.log('Current state after changes:', state);
+      const currentState = JSON.parse(JSON.stringify(state));
+      addToHistory(currentState);
     }
     
     return result;
   };
 
-  // Update undo function completely
+  /**
+   * Undo the last state change
+   * @returns {boolean} Whether undo was successful
+   */
   const undo = () => {
+    console.log('undo called, historyIndex:', historyIndex, 'history:', history.map(h => h.count));
+    
     if (!historyEnabled || historyIndex <= 0) {
+      console.log('History not enabled or at beginning of history');
       return false;
     }
     
-    // Ensure we have history entries
-    if (history.length === 0) return false;
-    
-    // Decrement index to go back in time
+    // Get previous state
     historyIndex--;
+    console.log('New historyIndex:', historyIndex);
     
-    // Get the state from history
     const prevState = history[historyIndex];
-    if (!prevState) return false;
+    console.log('Previous state:', prevState);
     
     // Keep track of old state for notifications
     const oldState = { ...state };
+    console.log('Old state before undo:', oldState);
     
-    // Reset state object by removing all properties
-    Object.keys(state).forEach(key => delete state[key]);
+    // Clear current state
+    for (const key in state) {
+      delete state[key];
+    }
     
-    // Add back properties from previous state (deep copy to avoid reference issues)
-    const stateToCopy = JSON.parse(JSON.stringify(prevState));
-    Object.assign(state, stateToCopy);
+    // Copy previous state to current state
+    const deepCopy = JSON.parse(JSON.stringify(prevState));
+    for (const key in deepCopy) {
+      state[key] = deepCopy[key];
+    }
+    
+    console.log('New state after undo:', state);
     
     // We need to manually update computed values here
     for (const key in computeFunctions) {
       computedValues[key] = computeFunctions[key](state);
     }
     
-    // Notify listeners without adding to history
-    notifyListeners(state, oldState, null);
+    // Notify listeners of state change
+    notifyListeners(state, oldState, {});
     
     return true;
   };
