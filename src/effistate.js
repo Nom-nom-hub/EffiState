@@ -95,7 +95,7 @@ export function createStore(initialState = {}, options = {}) {
     if (listenerCount <= 3) {
       for (let i = 0; i < listenerCount; i++) {
         if (typeof listenerArray[i] === 'function') {
-          listenerArray[i](newState, oldState);
+          listenerArray[i](state, oldState);
         }
       }
       return;
@@ -105,7 +105,7 @@ export function createStore(initialState = {}, options = {}) {
     let i = 0;
     while (i < listenerCount) {
       if (typeof listenerArray[i] === 'function') {
-        listenerArray[i++](newState, oldState);
+        listenerArray[i++](state, oldState);
       } else {
         i++;
       }
@@ -336,7 +336,7 @@ export function createStore(initialState = {}, options = {}) {
   // For state history (initialize lazily)
   let history;
   let historyIndex;
-  let stateHistoryLimit;  // Renamed to be more specific
+  let stateHistoryLimit;  // Renamed to avoid duplicate declaration
   let historyEnabled = false;
 
   // Fast references and cached values
@@ -419,28 +419,73 @@ export function createStore(initialState = {}, options = {}) {
    */
   const compute = (key, fn) => {
     computeFunctions[key] = fn;
-    computedValues[key] = fn(state);
-  };
-
-  /**
-   * Enable history tracking for undo/redo
-   */
-  const enableHistory = (limit = historyLimit) => {
-    if (!historyEnabled) {
-      history = [];
-      historyIndex = -1;
-      stateHistoryLimit = limit || 50;
-      historyEnabled = true;
-      
-      // Store initial state
-      history.push({ ...state });
-      historyIndex = 0;
+    // Compute initial value
+    try {
+      computedValues[key] = fn(state);
+    } catch (e) {
+      console.error(`Error computing initial value for ${key}:`, e);
+      computedValues[key] = undefined;
     }
   };
 
   /**
+   * Enable history tracking for time-travel
+   * @param {number} limit - Max number of history entries
+   * @returns {Object} History control methods
+   */
+  const enableHistory = (limit) => {
+    if (historyEnabled) return { undo, redo };
+    
+    history = [];
+    historyIndex = -1;
+    stateHistoryLimit = limit || 50;
+    historyEnabled = true;
+    
+    // Store initial state in history
+    addToHistory(state);
+    
+    return { undo, redo };
+  };
+
+  /**
+   * Add current state to history
+   * @param {Object} state - State to add to history
+   */
+  const addToHistory = (currentState) => {
+    if (!historyEnabled) return;
+    
+    // Create deep copy of state for history
+    const historyCopy = JSON.parse(JSON.stringify(currentState));
+    
+    // If we're in the middle of the history, truncate future entries
+    if (historyIndex < history.length - 1) {
+      history = history.slice(0, historyIndex + 1);
+    }
+    
+    // Add new state to history
+    history.push(historyCopy);
+    historyIndex = history.length - 1;
+    
+    // Limit history size
+    if (history.length > stateHistoryLimit) {
+      history.shift();
+      historyIndex--;
+    }
+  };
+
+  // Modify set to track history
+  const originalSet = set;
+  set = (newState) => {
+    const result = originalSet(newState);
+    if (historyEnabled) {
+      addToHistory(state);
+    }
+    return result;
+  };
+
+  /**
    * Undo the last state change
-   * @returns {Boolean} Whether undo was successful
+   * @returns {boolean} Whether undo was successful
    */
   const undo = () => {
     if (!historyEnabled || historyIndex <= 0) {
@@ -450,8 +495,26 @@ export function createStore(initialState = {}, options = {}) {
     historyIndex--;
     const previousState = history[historyIndex];
     
-    // Replace state without adding to history
-    replace(previousState);
+    // Clone to avoid mutating history
+    const stateCopy = JSON.parse(JSON.stringify(previousState));
+    
+    // Update state without adding to history
+    const oldState = { ...state };
+    
+    // Update state directly
+    for (const key in state) {
+      if (!(key in stateCopy)) {
+        delete state[key];
+      }
+    }
+    
+    for (const key in stateCopy) {
+      state[key] = stateCopy[key];
+    }
+    
+    // Notify listeners but don't add to history
+    notifyListeners(state, oldState);
+    
     return true;
   };
 
@@ -467,8 +530,26 @@ export function createStore(initialState = {}, options = {}) {
     historyIndex++;
     const nextState = history[historyIndex];
     
-    // Replace state without adding to history
-    replace(nextState);
+    // Clone to avoid mutating history
+    const stateCopy = JSON.parse(JSON.stringify(nextState));
+    
+    // Update state without adding to history
+    const oldState = { ...state };
+    
+    // Update state directly
+    for (const key in state) {
+      if (!(key in stateCopy)) {
+        delete state[key];
+      }
+    }
+    
+    for (const key in stateCopy) {
+      state[key] = stateCopy[key];
+    }
+    
+    // Notify listeners but don't add to history
+    notifyListeners(state, oldState);
+    
     return true;
   };
 
@@ -807,39 +888,39 @@ export function withDevTools(store, options = {}) {
 }
 
 /**
- * Create a selector function for efficient component updates
- * @param {Object} store - The store to select from
- * @param {Function} selectorFn - Function to select part of state
- * @param {Function} equalityFn - Optional equality function
- * @returns {Function} Selector hook
+ * Creates a selector for efficient derived state
+ * @param {Function} selectorFn - Function to compute derived state
+ * @param {Function} equalityFn - Optional equality check function
+ * @returns {Function} Selector function
  */
-export function createSelector(store, selectorFn, equalityFn = (a, b) => a === b) {
-  let currentValue = selectorFn(store.get());
-  let hasInitialized = false;
-  let isSubscribed = false;
-  let subscription = null;
+const createSelector = (selectorFn, equalityFn = (a, b) => a === b) => {
+  let lastResult;
+  let isInitialized = false;
   
-  // Lazy subscription pattern
-  const ensureSubscribed = () => {
-    if (!isSubscribed) {
-      subscription = store.subscribe((state) => {
-        const newValue = selectorFn(state);
-        // Only update if value changed according to equality function
-        if (!hasInitialized || !equalityFn(currentValue, newValue)) {
-          currentValue = newValue;
-          hasInitialized = true;
-        }
-      });
-      isSubscribed = true;
+  const selector = () => {
+    const currentState = get();
+    
+    if (!isInitialized) {
+      lastResult = selectorFn(currentState);
+      isInitialized = true;
+      return lastResult;
     }
+    
+    const newResult = selectorFn(currentState);
+    
+    if (!equalityFn(newResult, lastResult)) {
+      lastResult = newResult;
+    }
+    
+    return lastResult;
   };
   
-  // Return a function that always returns the latest value
-  return () => {
-    ensureSubscribed();
-    return currentValue;
-  };
-}
+  // Cache the initial value
+  lastResult = selectorFn(get());
+  isInitialized = true;
+  
+  return selector;
+};
 
 /**
  * Server synchronization middleware
