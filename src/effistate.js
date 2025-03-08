@@ -246,7 +246,14 @@ export function createStore(initialState = {}, options = {}) {
   
   // Wrapper function that we can use to intercept calls
   const set = (newState) => {
-    return setImplementation(newState);
+    const result = setImplementation(newState);
+    
+    // Make sure computed values are immediately updated after state changes
+    for (const key in computeFunctions) {
+      computedValues[key] = computeFunctions[key](state);
+    }
+    
+    return result;
   };
   
   // Ultra-fast subscribe implementation with listener ID caching
@@ -427,43 +434,41 @@ export function createStore(initialState = {}, options = {}) {
     historyEnabled = true;
     
     // Add initial state to history
-    addToHistory(state);
+    addToHistory({...state});
     
     return { undo, redo };
   };
 
-  // Modify set implementation to track history
-  const originalSetImplementation = setImplementation;
-  setImplementation = (newState) => {
-    const result = originalSetImplementation(newState);
-    if (historyEnabled) {
-      addToHistory(state);
-    }
-    return result;
-  };
-
-  // Update undo function
+  // Update undo function completely
   const undo = () => {
     if (!historyEnabled || historyIndex <= 0) {
       return false;
     }
     
-    // Move back in history
+    // We must decrement first, then access the state at that index
     historyIndex--;
     const prevState = history[historyIndex];
     
     // Keep track of old state for notifications
     const oldState = { ...state };
     
-    // Replace state entirely with previous state
-    Object.keys(state).forEach(key => {
+    // Clear the current state
+    for (const key in state) {
       delete state[key];
-    });
+    }
+    
+    // We need a deep copy to avoid reference issues with nested objects
+    const stateCopy = JSON.parse(JSON.stringify(prevState));
     
     // Copy state from history
-    Object.keys(prevState).forEach(key => {
-      state[key] = prevState[key];
+    Object.keys(stateCopy).forEach(key => {
+      state[key] = stateCopy[key];
     });
+    
+    // We need to manually update computed values here
+    for (const key in computeFunctions) {
+      computedValues[key] = computeFunctions[key](state);
+    }
     
     // Notify listeners with old state
     notifyListeners(state, oldState, {});
@@ -480,22 +485,29 @@ export function createStore(initialState = {}, options = {}) {
       return false;
     }
     
-    // Move forward in history
     historyIndex++;
     const nextState = history[historyIndex];
     
     // Keep track of old state for notifications
     const oldState = { ...state };
     
-    // Replace state entirely with next state
-    Object.keys(state).forEach(key => {
+    // Clear the current state
+    for (const key in state) {
       delete state[key];
-    });
+    }
+    
+    // Deep copy to avoid reference issues
+    const stateCopy = JSON.parse(JSON.stringify(nextState));
     
     // Copy state from history
-    Object.keys(nextState).forEach(key => {
-      state[key] = nextState[key];
+    Object.keys(stateCopy).forEach(key => {
+      state[key] = stateCopy[key];
     });
+    
+    // Update computed values
+    for (const key in computeFunctions) {
+      computedValues[key] = computeFunctions[key](state);
+    }
     
     // Notify listeners with old state
     notifyListeners(state, oldState, {});
