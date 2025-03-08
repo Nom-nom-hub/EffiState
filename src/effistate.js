@@ -357,43 +357,7 @@ export function createStore(initialState = {}, options = {}) {
   let historyIndex;
   let stateHistoryLimit;
   let historyEnabled = false;
-
-  // Fast references and cached values
-  const EMPTY_OBJECT = Object.freeze({});
-
-  /**
-   * Get the current state
-   * @returns {Object} Current state
-   */
-  const get = () => state;
-
-  /**
-   * Compute a derived value from state
-   * @param {string} key - Key for the computed value
-   * @param {Function} fn - Function to compute the value
-   */
-  const compute = (key, fn) => {
-    computeFunctions[key] = fn;
-    // Compute initial value
-    computedValues[key] = fn(state);
-  };
-
-  /**
-   * Get computed values
-   * @returns {Object} Object containing all computed values
-   */
-  const getComputed = () => {
-    return { ...computedValues };
-  };
-
-  /**
-   * Get all state including computed values
-   * @returns {Object} Combined state and computed values
-   */
-  const getAll = () => {
-    return { ...state, ...computedValues };
-  };
-
+  
   /**
    * Add current state to history
    * @param {Object} stateToAdd - State to add to history
@@ -454,7 +418,7 @@ export function createStore(initialState = {}, options = {}) {
     
     return result;
   };
-
+  
   /**
    * Undo the last state change
    * @returns {boolean} Whether undo was successful
@@ -492,7 +456,7 @@ export function createStore(initialState = {}, options = {}) {
     
     return true;
   };
-
+  
   /**
    * Redo a previously undone state change
    * @returns {boolean} Whether redo was successful
