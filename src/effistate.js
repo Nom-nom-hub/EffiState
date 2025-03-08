@@ -428,7 +428,6 @@ export function createStore(initialState = {}, options = {}) {
       return false;
     }
     
-    // Get previous state
     historyIndex--;
     const prevState = history[historyIndex];
     
@@ -454,6 +453,8 @@ export function createStore(initialState = {}, options = {}) {
     // Notify listeners of state change
     notifyListeners(state, oldState, {});
     
+    console.log('UNDO: historyIndex:', historyIndex, 'prevState:', prevState, 'currentState:', state);
+    
     return true;
   };
   
@@ -466,7 +467,6 @@ export function createStore(initialState = {}, options = {}) {
       return false;
     }
     
-    // Get next state
     historyIndex++;
     const nextState = history[historyIndex];
     
@@ -491,6 +491,8 @@ export function createStore(initialState = {}, options = {}) {
     
     // Notify listeners of state change
     notifyListeners(state, oldState, {});
+    
+    console.log('REDO: historyIndex:', historyIndex, 'nextState:', nextState, 'currentState:', state);
     
     return true;
   };
