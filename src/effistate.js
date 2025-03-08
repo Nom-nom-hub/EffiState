@@ -654,34 +654,29 @@ export function createStore(initialState = {}, options = {}) {
     };
   };
 
-  // Return the public API
-  return {
+  // Create the store object
+  const store = {
     get,
-    getComputed,
-    getAll,
     set,
     subscribe,
-    compute,
-    enableHistory,
-    undo,
-    redo,
     bulkUpdate,
     updateArray,
     replace,
-    createLiteVersion,
+    getState: get, // Alias for Redux compatibility
+    dispatch: set, // Alias for Redux compatibility
+    
     // Enhanced API methods
     enableHistory,
     enablePersistence,
     createSelector,
     createAsyncAction,
+    
     // Array operations
     array: {
       push: (arrayKey, ...items) => {
-        return updateArray(arrayKey, arr => {
-          const originalLength = arr.length;
-          arr.push(...items);
-          return { inserted: items, index: originalLength };
-        });
+        const array = [...(state[arrayKey] || []), ...items];
+        set({ [arrayKey]: array });
+        return array;
       },
       filter: (arrayKey, predicate) => {
         return updateArray(arrayKey, arr => {
@@ -718,13 +713,30 @@ export function createStore(initialState = {}, options = {}) {
         });
       }
     },
-    // Standard methods from before
-    updateArray,
+    
+    // Object operations
+    // ...other methods...
+    
+    // Enhanced debugging
+    debug: {
+      getSubscriberCount: () => listeners.size,
+      // ...other debug methods...
+    },
+    
+    // Batch multiple updates for better performance
     bulkUpdate,
+    
     // Developer experience features
-    devTools: enableDevTools ? connectToDevTools(store) : null,
     getAsyncState: (actionId) => asyncStateMap.get(actionId),
   };
+
+  // Add DevTools after store object is created
+  if (enableDevTools) {
+    store.devTools = connectToDevTools(store);
+  }
+
+  // Return the completed store
+  return store;
 }
 
 /**
