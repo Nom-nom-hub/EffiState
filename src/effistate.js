@@ -548,6 +548,69 @@ export function createStore(initialState = {}, options = {}) {
     };
   };
 
+  // Add the missing enablePersistence function
+  
+  /**
+   * Enables persistence for the store
+   * @param {Object} options - Persistence options
+   * @returns {Function} Function to disable persistence
+   */
+  const enablePersistence = (options = {}) => {
+    const {
+      key = 'effistate_store',
+      storage = typeof localStorage !== 'undefined' ? localStorage : null,
+      serialize = JSON.stringify,
+      deserialize = JSON.parse,
+      filter = null
+    } = options;
+    
+    if (!storage) {
+      console.warn('Storage not available, persistence disabled');
+      return () => {};
+    }
+    
+    // Load initial state from storage
+    try {
+      const saved = storage.getItem(key);
+      if (saved) {
+        const savedState = deserialize(saved);
+        // Apply saved state but filter if needed
+        const stateToSet = filter ? 
+          Object.keys(savedState)
+            .filter(key => !filter || filter(key))
+            .reduce((obj, key) => {
+              obj[key] = savedState[key];
+              return obj;
+            }, {}) : 
+          savedState;
+          
+        set(stateToSet);
+      }
+    } catch (e) {
+      console.error('Failed to load persisted state:', e);
+    }
+    
+    // Subscribe to changes and save to storage
+    const unsubscribe = subscribe((state) => {
+      try {
+        const stateToSave = filter ? 
+          Object.keys(state)
+            .filter(key => !filter || filter(key))
+            .reduce((obj, key) => {
+              obj[key] = state[key];
+              return obj;
+            }, {}) : 
+          state;
+          
+        storage.setItem(key, serialize(stateToSave));
+      } catch (e) {
+        console.error('Failed to persist state:', e);
+      }
+    });
+    
+    return unsubscribe;
+  };
+
   // Return the public API
   return {
     get,
