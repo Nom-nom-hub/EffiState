@@ -611,6 +611,49 @@ export function createStore(initialState = {}, options = {}) {
     return unsubscribe;
   };
 
+  /**
+   * Creates an async action handler with loading/success/error states
+   * @param {Function} asyncFn - Async function to execute
+   * @param {Object} options - Configuration options
+   * @returns {Function} Async action function that updates the store
+   */
+  const createAsyncAction = (asyncFn, options = {}) => {
+    const {
+      statusKey = 'status',
+      dataKey = 'data',
+      errorKey = 'error',
+      loadingState = 'loading',
+      successState = 'success',
+      errorState = 'error'
+    } = options;
+    
+    return async (...args) => {
+      // Set loading state
+      set({ [statusKey]: loadingState, [errorKey]: null });
+      
+      try {
+        // Execute the async function
+        const result = await asyncFn(...args);
+        
+        // Set success state
+        set({
+          [statusKey]: successState,
+          [dataKey]: result
+        });
+        
+        return result;
+      } catch (error) {
+        // Set error state
+        set({
+          [statusKey]: errorState,
+          [errorKey]: error.message || 'Unknown error'
+        });
+        
+        throw error;
+      }
+    };
+  };
+
   // Return the public API
   return {
     get,
