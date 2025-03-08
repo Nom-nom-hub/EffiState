@@ -630,6 +630,26 @@ export function createStore(initialState = {}, options = {}) {
     };
   };
 
+  // For computed values
+  const get = () => state;
+
+  // For computed values
+  const compute = (key, fn) => {
+    computeFunctions[key] = fn;
+    // Compute initial value
+    computedValues[key] = fn(state);
+  };
+
+  // For computed values
+  const getComputed = () => {
+    return { ...computedValues };
+  };
+
+  // For computed values
+  const getAll = () => {
+    return { ...state, ...computedValues };
+  };
+
   // Create the store object
   const store = {
     get,
@@ -1004,37 +1024,4 @@ export const createReactHooks = (store) => {
     useSelector: () => {},
     useAction: () => {}
   };
-};
-
-/**
- * Get the current state
- * @returns {Object} Current state
- */
-const get = () => state;
-
-/**
- * Compute a derived value from state
- * @param {string} key - Key for the computed value
- * @param {Function} fn - Function to compute the value
- */
-const compute = (key, fn) => {
-  computeFunctions[key] = fn;
-  // Compute initial value
-  computedValues[key] = fn(state);
-};
-
-/**
- * Get computed values
- * @returns {Object} Object containing all computed values
- */
-const getComputed = () => {
-  return { ...computedValues };
-};
-
-/**
- * Get all state including computed values
- * @returns {Object} Combined state and computed values
- */
-const getAll = () => {
-  return { ...state, ...computedValues };
 }; 
