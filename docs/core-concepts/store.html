@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store - EffiState Core Concepts</title>
+  <meta name="description" content="Learn about the Store concept in EffiState">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../index.html">Docs</a>
+          <a href="../examples.html">Examples</a>
+          <a href="../../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="../index.html">Documentation</a></li>
+            <li><a href="../getting-started.html">Getting Started</a></li>
+            <li><a href="../installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./store.html" class="active">Store</a></li>
+            <li><a href="./state.html">State</a></li>
+            <li><a href="./subscriptions.html">Subscriptions</a></li>
+            <li><a href="./selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="../advanced/middleware.html">Middleware</a></li>
+            <li><a href="../advanced/persistence.html">Persistence</a></li>
+            <li><a href="../advanced/devtools.html">DevTools</a></li>
+            <li><a href="../performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="../integrations/react.html">React</a></li>
+            <li><a href="../integrations/vue.html">Vue</a></li>
+            <li><a href="../integrations/svelte.html">Svelte</a></li>
+            <li><a href="../integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Store</h1>
+      
+      <p class="lead">
+        The Store is the central concept in EffiState, responsible for holding your application state and providing methods to interact with it.
+      </p>
+      
+      <section>
+        <h2>Creating a Store</h2>
+        
+        <p>
+          You create a store using the <code>createStore</code> function, providing the initial state:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+const store = createStore({
+  count: 0,
+  todos: [],
+  user: null
+});</code></pre>
+        
+        <p>
+          The store exposes methods to get and update the state, subscribe to changes, and create selectors.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Store Methods</h2>
+        
+        <h3>get()</h3>
+        <p>
+          Retrieves the current state:
+        </p>
+        <pre><code class="language-javascript">const state = store.get();
+console.log(state.count); // 0</code></pre>
+        
+        <h3>set()</h3>
+        <p>
+          Updates the state with a partial state object:
+        </p>
+        <pre><code class="language-javascript">store.set({ count: 1 });
+console.log(store.get().count); // 1</code></pre>
+        
+        <h3>subscribe()</h3>
+        <p>
+          Subscribes to state changes:
+        </p>
+        <pre><code class="language-javascript">const unsubscribe = store.subscribe((newState, oldState) => {
+  console.log('State changed:', newState);
+});
+
+// Later, to unsubscribe:
+unsubscribe();</code></pre>
+        
+        <h3>array</h3>
+        <p>
+          Optimized array operations:
+        </p>
+        <pre><code class="language-javascript">// Add an item
+store.array.push('todos', { id: 1, text: 'Learn EffiState' });
+
+// Filter items
+store.array.filter('todos', todo => !todo.completed);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Store Configuration</h2>
+        
+        <p>
+          You can configure a store with additional options:
+        </p>
+        
+        <pre><code class="language-javascript">const store = createStore(
+  { count: 0 },
+  {
+    immutable: true,
+    enableDevTools: true,
+    maxHistoryLength: 50
+  }
+);</code></pre>
+        
+        <p>See the API Reference for all available configuration options.</p>
+      </section>
+      
+      <div class="navigation-links">
+        <a href="./state.html" class="next">Next: State →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/docs.js"></script>
+</body>
+</html> 

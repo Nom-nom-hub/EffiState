@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcing EffiState 1.0 - EffiState Blog</title>
+  <meta name="description" content="Introducing EffiState, a new generation of state management focused on speed and developer experience">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/blog.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../../docs/index.html">Docs</a>
+          <a href="../../docs/examples.html">Examples</a>
+          <a href="../index.html" class="active">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="blog-post">
+      <div class="blog-post-header">
+        <div class="blog-post-meta">February 28, 2023 • Release</div>
+        <h1>Announcing EffiState 1.0</h1>
+        <p class="lead">Introducing EffiState, a new generation of state management focused on speed and developer experience.</p>
+      </div>
+      
+      <img src="../../images/blog/release.jpg" alt="EffiState 1.0 Launch" class="blog-post-image">
+      
+      <div class="blog-post-content">
+        <p>
+          Today, we're thrilled to announce the release of EffiState 1.0, a state management library designed from the ground up for modern JavaScript applications. After months of development and testing, we're confident that EffiState sets a new standard for performance and developer experience.
+        </p>
+        
+        <h2>A New Approach to State Management</h2>
+        
+        <p>
+          EffiState was born out of our frustration with existing state management solutions. We wanted something that was:
+        </p>
+        
+        <ul>
+          <li><strong>Blazing fast</strong> - Optimized for performance in both small and large applications</li>
+          <li><strong>Simple to learn</strong> - Intuitive API that developers can pick up in minutes</li>
+          <li><strong>Framework agnostic</strong> - Works with React, Vue, Angular, or vanilla JavaScript</li>
+          <li><strong>Lightweight</strong> - Under 2KB minified and gzipped</li>
+          <li><strong>Type-safe</strong> - First-class TypeScript support</li>
+        </ul>
+        
+        <p>
+          With EffiState, we've achieved all of these goals and more. Our benchmarks show that EffiState is up to 3x faster than other popular state management libraries, with a significantly smaller bundle size.
+        </p>
+        
+        <h2>Key Features</h2>
+        
+        <h3>Simplified State Updates</h3>
+        
+        <p>
+          Unlike other state management libraries that require actions, reducers, and complex boilerplate, EffiState allows you to update state directly:
+        </p>
+        
+        <pre><code class="language-javascript">// Create a store
+const store = createStore({ count: 0 });
+
+// Update state directly
+function increment() {
+  store.set({ count: store.get().count + 1 });
+}
+
+// Subscribe to changes
+store.subscribe((newState, oldState) => {
+  console.log('Count changed:', newState.count);
+});</code></pre>
+        
+        <h3>Optimized Array Operations</h3>
+        
+        <p>
+          EffiState includes specialized methods for array operations that provide significant performance improvements over standard immutable updates:
+        </p>
+        
+        <pre><code class="language-javascript">// Add an item to an array
+store.array.push('todos', { id: 1, text: 'Learn EffiState', completed: false });
+
+// Update an item
+store.array.map('todos', todo => 
+  todo.id === 1 ? { ...todo, completed: true } : todo
+);
+
+// Remove items
+store.array.filter('todos', todo => !todo.completed);</code></pre>
+        
+        <h3>Framework Integrations</h3>
+        
+        <p>
+          EffiState works with any UI framework, but we provide optimized bindings for popular frameworks:
+        </p>
+        
+        <pre><code class="language-javascript">// React
+const { useState, useSelector } = createReactBindings(store);
+
+function Counter() {
+  const count = useSelector(state => state.count);
+  
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>Increment</button>
+    </div>
+  );
+}</code></pre>
+        
+        <h2>Getting Started</h2>
+        
+        <p>
+          Getting started with EffiState is easy. Install it from npm:
+        </p>
+        
+        <pre><code class="language-bash">npm install effistate</code></pre>
+        
+        <p>
+          Then create your first store:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+// Create a store with initial state
+const store = createStore({
+  count: 0,
+  todos: [],
+  user: null
+});
+
+// Export functions to update state
+export function increment() {
+  store.set({ count: store.get().count + 1 });
+}
+
+// Export the store for use in your app
+export default store;</code></pre>
+        
+        <p>
+          Check out our <a href="../../docs/getting-started.html">Getting Started guide</a> for more detailed instructions and examples.
+        </p>
+        
+        <h2>What's Next</h2>
+        
+        <p>
+          This is just the beginning for EffiState. Our roadmap includes:
+        </p>
+        
+        <ul>
+          <li>More framework integrations</li>
+          <li>Advanced DevTools for debugging</li>
+          <li>Persistance middleware</li>
+          <li>Server synchronization utilities</li>
+          <li>And much more...</li>
+        </ul>
+        
+        <p>
+          We're excited to see what you build with EffiState! Please share your feedback, bug reports, and feature requests on <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>.
+        </p>
+      </div>
+      
+      <div class="blog-post-footer">
+        <h3>Share this post</h3>
+        <div class="share-buttons">
+          <button class="share-button" data-platform="twitter">
+            <i class="icon-twitter"></i> Twitter
+          </button>
+          <button class="share-button" data-platform="facebook">
+            <i class="icon-facebook"></i> Facebook
+          </button>
+          <button class="share-button" data-platform="linkedin">
+            <i class="icon-linkedin"></i> LinkedIn
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/blog.js"></script>
+</body>
+</html> 

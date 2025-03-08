@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selectors - EffiState Core Concepts</title>
+  <meta name="description" content="Learn about computed values and selectors in EffiState">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../index.html">Docs</a>
+          <a href="../examples.html">Examples</a>
+          <a href="../../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="../index.html">Documentation</a></li>
+            <li><a href="../getting-started.html">Getting Started</a></li>
+            <li><a href="../installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./store.html">Store</a></li>
+            <li><a href="./state.html">State</a></li>
+            <li><a href="./subscriptions.html">Subscriptions</a></li>
+            <li><a href="./selectors.html" class="active">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="../advanced/middleware.html">Middleware</a></li>
+            <li><a href="../advanced/persistence.html">Persistence</a></li>
+            <li><a href="../advanced/devtools.html">DevTools</a></li>
+            <li><a href="../performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="../integrations/react.html">React</a></li>
+            <li><a href="../integrations/vue.html">Vue</a></li>
+            <li><a href="../integrations/svelte.html">Svelte</a></li>
+            <li><a href="../integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Selectors</h1>
+      
+      <p class="lead">
+        Selectors allow you to derive data from your state, with automatic memoization for optimal performance.
+      </p>
+      
+      <section>
+        <h2>Creating Selectors</h2>
+        
+        <p>
+          Use the <code>createSelector</code> method to create derived state:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+const store = createStore({
+  todos: [
+    { id: 1, text: 'Learn EffiState', completed: false },
+    { id: 2, text: 'Build an app', completed: true }
+  ],
+  filter: 'all' // Can be 'all', 'active', or 'completed'
+});
+
+// Create a selector for filtered todos
+const filteredTodos = store.createSelector(
+  state => {
+    switch (state.filter) {
+      case 'completed':
+        return state.todos.filter(todo => todo.completed);
+      case 'active':
+        return state.todos.filter(todo => !todo.completed);
+      default:
+        return state.todos;
+    }
+  }
+);
+
+// Use the selector
+console.log(filteredTodos()); // Get current filtered todos</code></pre>
+        
+        <p>
+          Selectors are functions that compute derived data from the store's state.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Memoization</h2>
+        
+        <p>
+          Selectors automatically memoize their results, recalculating only when dependencies change:
+        </p>
+        
+        <pre><code class="language-javascript">// This selector only recalculates when todos or filter changes
+const memoizedFilteredTodos = store.createSelector(
+  state => {
+    console.log('Computing filtered todos...'); // Only logs when actually recalculating
+    return state.todos.filter(todo => 
+      state.filter === 'all' || 
+      (state.filter === 'completed' && todo.completed) ||
+      (state.filter === 'active' && !todo.completed)
+    );
+  }
+);
+
+// First call computes the value
+const result1 = memoizedFilteredTodos();
+
+// Second call returns the cached value without recomputing
+const result2 = memoizedFilteredTodos();
+
+// After state changes that affect the selector
+store.set({ filter: 'completed' });
+
+// Now it will recompute
+const result3 = memoizedFilteredTodos();</code></pre>
+      </section>
+      
+      <section>
+        <h2>Optimizing with Dependencies</h2>
+        
+        <p>
+          You can explicitly specify dependencies to further optimize selectors:
+        </p>
+        
+        <pre><code class="language-javascript">// Explicitly specify which state paths this selector depends on
+const filteredTodos = store.createSelector(
+  state => {
+    // Filter logic as before
+  },
+  ['todos', 'filter']
+);
+
+// Compose with another selector
+const completedCount = store.createSelector(
+  () => {
+    // Use the filteredTodos selector within this one
+    return filteredTodos().filter(todo => todo.completed).length;
+  },
+  ['todos', 'filter'] // Same dependencies
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Subscribing to Selectors</h2>
+        
+        <p>
+          You can subscribe to selectors to react to derived data changes:
+        </p>
+        
+        <pre><code class="language-javascript">// Create a subscription to the filtered todos
+filteredTodos.subscribe(todos => {
+  console.log('Filtered todos changed:', todos);
+  
+  // Update UI or perform other actions
+  renderTodoList(todos);
+});</code></pre>
+      </section>
+      
+      <section>
+        <h2>Best Practices</h2>
+        
+        <h3>Granular Selectors</h3>
+        <p>
+          Create smaller, focused selectors that can be composed together rather than one large selector.
+        </p>
+        
+        <h3>Proper Dependencies</h3>
+        <p>
+          Always specify the exact dependencies your selector relies on for optimal performance.
+        </p>
+        
+        <h3>Avoid Side Effects</h3>
+        <p>
+          Selectors should be pure functions that only compute derived data, without performing side effects.
+        </p>
+      </section>
+      
+      <div class="callout callout-info">
+        <h3>React Integration</h3>
+        <p>
+          When using EffiState with React, the <code>useSelector</code> hook automatically manages subscriptions to selectors:
+        </p>
+        <pre><code class="language-javascript">function TodoList() {
+  // This component will re-render only when filtered todos change
+  const todos = useSelector(state => {
+    return state.todos.filter(todo => 
+      state.filter === 'all' || 
+      (state.filter === 'completed' && todo.completed) ||
+      (state.filter === 'active' && !todo.completed)
+    );
+  });
+  
+  return (
+    <ul>
+      {todos.map(todo => (
+        <li key={todo.id}>{todo.text}</li>
+      ))}
+    </ul>
+  );
+}</code></pre>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="./subscriptions.html" class="prev">← Previous: Subscriptions</a>
+        <a href="../advanced/middleware.html" class="next">Next: Middleware →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/docs.js"></script>
+</body>
+</html> 

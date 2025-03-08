@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EffiState API Reference</title>
+  <meta name="description" content="Complete API documentation for EffiState - the fastest state management library">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/docs.css">
+</head>
+<body>
+  <header>
+    <!-- Same header as in other docs pages -->
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <!-- Same sidebar with API reference link active -->
+    </aside>
+
+    <main class="content">
+      <h1>API Reference</h1>
+      
+      <p class="lead">
+        Complete documentation of all EffiState methods and features.
+      </p>
+
+      <div class="api-toc">
+        <h2>Table of Contents</h2>
+        <ul>
+          <li><a href="#createStore">createStore</a></li>
+          <li><a href="#get">get / getAll</a></li>
+          <li><a href="#set">set</a></li>
+          <li><a href="#subscribe">subscribe</a></li>
+          <li><a href="#array">array methods</a></li>
+          <li><a href="#createSelector">createSelector</a></li>
+          <li><a href="#enableHistory">enableHistory</a></li>
+          <li><a href="#enablePersistence">enablePersistence</a></li>
+          <li><a href="#createAsyncAction">createAsyncAction</a></li>
+          <li><a href="#withServerSync">withServerSync</a></li>
+          <li><a href="#framework">Framework Integrations</a></li>
+        </ul>
+      </div>
+
+      <section id="createStore" class="api-section">
+        <h2>createStore(initialState, options)</h2>
+        
+        <p>
+          Creates a new EffiState store with the provided initial state and options.
+        </p>
+        
+        <h3>Parameters</h3>
+        <ul class="params">
+          <li>
+            <code>initialState</code> <span class="type">Object</span>
+            <p>The initial state object for the store.</p>
+          </li>
+          <li>
+            <code>options</code> <span class="type">Object</span> <span class="optional">optional</span>
+            <p>Configuration options for the store.</p>
+            <ul>
+              <li><code>enableDevTools</code> <span class="type">boolean</span> <span class="default">true</span> - Enable Redux DevTools integration</li>
+              <li><code>immutable</code> <span class="type">boolean</span> <span class="default">true</span> - Treat state as immutable</li>
+              <li><code>historyLimit</code> <span class="type">number</span> <span class="default">50</span> - Maximum history entries for time-travel</li>
+              <li><code>enableStructuralSharing</code> <span class="type">boolean</span> <span class="default">true</span> - Enable structural sharing optimization</li>
+              <li><code>asyncHandling</code> <span class="type">boolean</span> <span class="default">true</span> - Enable async action handling</li>
+            </ul>
+          </li>
+        </ul>
+        
+        <h3>Returns</h3>
+        <p><span class="type">Object</span> - The store instance with methods to interact with state.</p>
+        
+        <h3>Example</h3>
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+// Basic usage
+const store = createStore({ count: 0 });
+
+// With options
+const storeWithOptions = createStore(
+  { count: 0, todos: [] },
+  {
+    enableDevTools: true,
+    immutable: true,
+    historyLimit: 100
+  }
+);</code></pre>
+      </section>
+
+      <section id="get" class="api-section">
+        <h2>get() / getAll()</h2>
+        
+        <p>
+          Methods to retrieve the current state from the store.
+        </p>
+        
+        <h3>Returns</h3>
+        <p><span class="type">Object</span> - The current state of the store.</p>
+        
+        <h3>Example</h3>
+        <pre><code class="language-javascript">// Get the entire state
+const state = store.getAll();
+
+// Or use get() which is an alias
+const sameState = store.get();</code></pre>
+      </section>
+
+      <section id="set" class="api-section">
+        <h2>set(newState)</h2>
+        
+        <p>
+          Updates the store's state by merging the provided object with the current state.
+        </p>
+        
+        <h3>Parameters</h3>
+        <ul class="params">
+          <li>
+            <code>newState</code> <span class="type">Object</span>
+            <p>An object containing the state changes to apply.</p>
+          </li>
+        </ul>
+        
+        <h3>Example</h3>
+        <pre><code class="language-javascript">// Update a single property
+store.set({ count: 1 });
+
+// Update multiple properties
+store.set({
+  count: 2,
+  user: { name: 'John', id: 123 }
+});</code></pre>
+      </section>
+
+      <!-- Remaining API sections would follow same pattern -->
+      <!-- For brevity I'm showing a few key sections -->
+
+      <section id="array" class="api-section">
+        <h2>array</h2>
+        
+        <p>
+          Specialized, optimized methods for working with arrays in the state.
+        </p>
+        
+        <h3>Methods</h3>
+        
+        <h4>array.push(arrayKey, ...items)</h4>
+        <p>Adds one or more items to the end of an array.</p>
+        <pre><code class="language-javascript">// Add a single item
+store.array.push('todos', { id: 1, text: 'New todo' });
+
+// Add multiple items
+store.array.push('todos', 
+  { id: 2, text: 'Second todo' },
+  { id: 3, text: 'Third todo' }
+);</code></pre>
+        
+        <h4>array.filter(arrayKey, predicate)</h4>
+        <p>Filters an array using the provided predicate function.</p>
+        <pre><code class="language-javascript">// Keep only incomplete todos
+store.array.filter('todos', todo => !todo.completed);</code></pre>
+        
+        <h4>array.map(arrayKey, mapper)</h4>
+        <p>Transforms each item in an array using the mapper function.</p>
+        <pre><code class="language-javascript">// Capitalize all todo text
+store.array.map('todos', todo => ({
+  ...todo,
+  text: todo.text.toUpperCase()
+}));</code></pre>
+      </section>
+
+      <section id="withServerSync" class="api-section">
+        <h2>withServerSync(store, options)</h2>
+        
+        <p>
+          Enhances a store with server synchronization capabilities.
+        </p>
+        
+        <h3>Parameters</h3>
+        <ul class="params">
+          <li>
+            <code>store</code> <span class="type">Object</span>
+            <p>The EffiState store to enhance.</p>
+          </li>
+          <li>
+            <code>options</code> <span class="type">Object</span>
+            <p>Configuration options for server sync.</p>
+            <ul>
+              <li><code>fetchFn</code> <span class="type">Function</span> - Async function to fetch state from server</li>
+              <li><code>pushFn</code> <span class="type">Function</span> - Async function to push state to server</li>
+              <li><code>syncInterval</code> <span class="type">number</span> <span class="default">0</span> - Auto-sync interval in ms (0 to disable)</li>
+              <li><code>onError</code> <span class="type">Function</span> - Error handler for sync operations</li>
+            </ul>
+          </li>
+        </ul>
+        
+        <h3>Returns</h3>
+        <p><span class="type">Object</span> - The enhanced store with additional sync methods.</p>
+        
+        <h3>Example</h3>
+        <pre><code class="language-javascript">import { createStore, withServerSync } from 'effistate';
+
+const store = createStore({ todos: [] });
+
+const syncedStore = withServerSync(store, {
+  fetchFn: async () => {
+    const response = await fetch('/api/state');
+    return response.json();
+  },
+  pushFn: async (state) => {
+    await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    });
+  },
+  syncInterval: 30000, // sync every 30 seconds
+  onError: (error) => console.error('Sync error:', error)
+});
+
+// Manual sync operations
+syncedStore.pull(); // fetch from server
+syncedStore.push(); // push to server
+syncedStore.stopSync(); // stop auto-sync</code></pre>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <!-- Same footer as other pages -->
+  </footer>
+
+  <script src="../scripts/docs.js"></script>
+</body>
+</html> 

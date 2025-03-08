@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscriptions - EffiState Core Concepts</title>
+  <meta name="description" content="Learn about reactive subscriptions in EffiState">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../index.html">Docs</a>
+          <a href="../examples.html">Examples</a>
+          <a href="../../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="../index.html">Documentation</a></li>
+            <li><a href="../getting-started.html">Getting Started</a></li>
+            <li><a href="../installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./store.html">Store</a></li>
+            <li><a href="./state.html">State</a></li>
+            <li><a href="./subscriptions.html" class="active">Subscriptions</a></li>
+            <li><a href="./selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="../advanced/middleware.html">Middleware</a></li>
+            <li><a href="../advanced/persistence.html">Persistence</a></li>
+            <li><a href="../advanced/devtools.html">DevTools</a></li>
+            <li><a href="../performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="../integrations/react.html">React</a></li>
+            <li><a href="../integrations/vue.html">Vue</a></li>
+            <li><a href="../integrations/svelte.html">Svelte</a></li>
+            <li><a href="../integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Subscriptions</h1>
+      
+      <p class="lead">
+        Subscriptions allow you to reactively respond to state changes in your EffiState store.
+      </p>
+      
+      <section>
+        <h2>Basic Subscriptions</h2>
+        
+        <p>
+          To subscribe to all state changes, use the <code>subscribe</code> method:
+        </p>
+        
+        <pre><code class="language-javascript">const unsubscribe = store.subscribe((newState, oldState) => {
+  console.log('State changed:', newState);
+  
+  // You can compare values to see what changed
+  if (newState.count !== oldState.count) {
+    console.log('Count changed from', oldState.count, 'to', newState.count);
+  }
+});
+
+// Later, when you no longer need the subscription:
+unsubscribe();</code></pre>
+        
+        <p>
+          The subscribe method returns an unsubscribe function that you can call to stop receiving updates.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Path-Based Subscriptions</h2>
+        
+        <p>
+          For better performance, you can subscribe to specific paths in the state:
+        </p>
+        
+        <pre><code class="language-javascript">// Subscribe only to changes in the 'todos' array
+const unsubscribe = store.subscribe(
+  (newTodos, oldTodos) => {
+    console.log('Todos changed:', newTodos);
+    
+    // This callback only runs when todos change
+    // And only receives the todos, not the entire state
+  },
+  'todos'
+);</code></pre>
+        
+        <p>
+          You can subscribe to nested paths using dot notation:
+        </p>
+        
+        <pre><code class="language-javascript">// Subscribe to changes in user's name
+store.subscribe(
+  (newName, oldName) => {
+    console.log(`Name changed from ${oldName} to ${newName}`);
+  },
+  'user.name'
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Multiple Path Subscriptions</h2>
+        
+        <p>
+          You can subscribe to multiple paths at once:
+        </p>
+        
+        <pre><code class="language-javascript">store.subscribe(
+  ([todos, filter], [prevTodos, prevFilter]) => {
+    // This runs when either todos or filter changes
+    console.log('Todos or filter changed');
+  },
+  ['todos', 'filter']
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Subscription Patterns</h2>
+        
+        <h3>UI Updates</h3>
+        <pre><code class="language-javascript">// Update DOM when state changes
+store.subscribe((state) => {
+  document.getElementById('username').textContent = state.user.name;
+  document.getElementById('items-count').textContent = state.cart.items.length;
+});</code></pre>
+        
+        <h3>Persisting State</h3>
+        <pre><code class="language-javascript">// Save state to localStorage on change
+store.subscribe((state) => {
+  localStorage.setItem('app-state', JSON.stringify(state));
+});</code></pre>
+        
+        <h3>Logging</h3>
+        <pre><code class="language-javascript">// Log specific changes for debugging
+store.subscribe(
+  (newValue, oldValue) => {
+    console.log(`User ID changed from ${oldValue} to ${newValue}`);
+  },
+  'user.id'
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Performance Considerations</h2>
+        
+        <p>
+          For optimal performance:
+        </p>
+        
+        <ul>
+          <li>Use path-based subscriptions when possible to reduce unnecessary callbacks</li>
+          <li>Keep subscription callbacks lightweight to prevent UI sluggishness</li>
+          <li>Unsubscribe when subscriptions are no longer needed (especially in components that unmount)</li>
+        </ul>
+        
+        <pre><code class="language-javascript">// In a component's initialization
+const unsubscribe = store.subscribe(/* ... */);
+
+// In the component's cleanup/destruction
+unsubscribe();</code></pre>
+      </section>
+      
+      <div class="callout callout-warning">
+        <h3>Avoid Side Effects</h3>
+        <p>
+          Be cautious about updating state within subscription callbacks, as it can lead to infinite loops. If you need to update state in response to another update, consider using middleware instead.
+        </p>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="./state.html" class="prev">← Previous: State</a>
+        <a href="./selectors.html" class="next">Next: Selectors →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/docs.js"></script>
+</body>
+</html> 

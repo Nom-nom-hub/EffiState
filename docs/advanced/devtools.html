@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTools - EffiState Advanced Concepts</title>
+  <meta name="description" content="Learn how to use EffiState DevTools for debugging">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../index.html">Docs</a>
+          <a href="../examples.html">Examples</a>
+          <a href="../../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="../index.html">Documentation</a></li>
+            <li><a href="../getting-started.html">Getting Started</a></li>
+            <li><a href="../installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="../core-concepts/store.html">Store</a></li>
+            <li><a href="../core-concepts/state.html">State</a></li>
+            <li><a href="../core-concepts/subscriptions.html">Subscriptions</a></li>
+            <li><a href="../core-concepts/selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="./middleware.html">Middleware</a></li>
+            <li><a href="./persistence.html">Persistence</a></li>
+            <li><a href="./devtools.html" class="active">DevTools</a></li>
+            <li><a href="../performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="../integrations/react.html">React</a></li>
+            <li><a href="../integrations/vue.html">Vue</a></li>
+            <li><a href="../integrations/svelte.html">Svelte</a></li>
+            <li><a href="../integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>DevTools</h1>
+      
+      <p class="lead">
+        EffiState provides powerful debugging tools to help you understand and manipulate state in your applications.
+      </p>
+      
+      <section>
+        <h2>Setting Up DevTools</h2>
+        
+        <p>
+          Enable DevTools in your store configuration:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+const store = createStore(
+  { count: 0, todos: [] },
+  {
+    devTools: true // Enable DevTools integration
+  }
+);</code></pre>
+        
+        <p>
+          Then, install the <a href="https://chrome.google.com/webstore/detail/effistate-devtools/abcdefghijklmnopqrstuvwxyz" target="_blank">EffiState DevTools Extension</a> for Chrome or Firefox.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Features</h2>
+        
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>State Inspection</h3>
+            <p>View your complete state tree with expandable objects and arrays. Search for specific values or paths.</p>
+          </div>
+          
+          <div class="feature-card">
+            <h3>Time Travel</h3>
+            <p>Step through previous states to understand how your application reached its current state.</p>
+          </div>
+          
+          <div class="feature-card">
+            <h3>Action History</h3>
+            <p>See every action that modified your state, with timestamps and before/after comparisons.</p>
+          </div>
+          
+          <div class="feature-card">
+            <h3>State Editing</h3>
+            <p>Modify state directly in the DevTools to test different scenarios without changing your code.</p>
+          </div>
+        </div>
+      </section>
+      
+      <section>
+        <h2>Custom Action Names</h2>
+        
+        <p>
+          For better debugging, you can name your state updates:
+        </p>
+        
+        <pre><code class="language-javascript">// Without action name
+store.set({ count: store.get().count + 1 });
+
+// With action name - shows up in DevTools history
+store.set({ count: store.get().count + 1 }, 'INCREMENT_COUNTER');</code></pre>
+        
+        <p>
+          This makes it easier to track specific updates in the DevTools action history.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Advanced Configuration</h2>
+        
+        <p>
+          Customize DevTools behavior with additional options:
+        </p>
+        
+        <pre><code class="language-javascript">const store = createStore(
+  initialState,
+  {
+    devTools: {
+      enabled: true,
+      name: 'My App Store', // Custom name in DevTools
+      maxAge: 50,           // Maximum number of actions to keep
+      latency: 500,         // Artificial latency for time travel (ms)
+      actionSanitizer: (action) => {
+        // Remove sensitive data from logged actions
+        if (action.type === 'USER_LOGIN' && action.password) {
+          return { ...action, password: '***' };
+        }
+        return action;
+      },
+      stateSanitizer: (state) => {
+        // Remove sensitive data from logged state
+        if (state.user && state.user.token) {
+          return {
+            ...state,
+            user: { ...state.user, token: '***' }
+          };
+        }
+        return state;
+      }
+    }
+  }
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Conditional Enabling</h2>
+        
+        <p>
+          You might want to enable DevTools only in development:
+        </p>
+        
+        <pre><code class="language-javascript">const store = createStore(
+  initialState,
+  {
+    devTools: process.env.NODE_ENV === 'development'
+  }
+);</code></pre>
+      </section>
+      
+      <div class="callout callout-info">
+        <h3>Performance Note</h3>
+        <p>
+          While DevTools are extremely helpful during development, they do add some overhead. Consider disabling them in production for optimal performance.
+        </p>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="./persistence.html" class="prev">← Previous: Persistence</a>
+        <a href="../performance.html" class="next">Next: Performance →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/docs.js"></script>
+</body>
+</html> 

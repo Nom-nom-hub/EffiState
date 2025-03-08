@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started - EffiState</title>
+  <meta name="description" content="Learn how to get started with EffiState for state management">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="./index.html">Documentation</a></li>
+            <li><a href="./getting-started.html" class="active">Getting Started</a></li>
+            <li><a href="./installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./core-concepts/store.html">Store</a></li>
+            <li><a href="./core-concepts/state.html">State</a></li>
+            <li><a href="./core-concepts/subscriptions.html">Subscriptions</a></li>
+            <li><a href="./core-concepts/selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="./advanced/middleware.html">Middleware</a></li>
+            <li><a href="./advanced/persistence.html">Persistence</a></li>
+            <li><a href="./advanced/devtools.html">DevTools</a></li>
+            <li><a href="./performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="./integrations/react.html">React</a></li>
+            <li><a href="./integrations/vue.html">Vue</a></li>
+            <li><a href="./integrations/svelte.html">Svelte</a></li>
+            <li><a href="./integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Getting Started</h1>
+      
+      <p class="lead">
+        This guide will help you start using EffiState in your JavaScript application.
+      </p>
+      
+      <section>
+        <h2>Installation</h2>
+        
+        <p>
+          First, install EffiState using your preferred package manager:
+        </p>
+        
+        <pre><code class="language-bash">npm install effistate</code></pre>
+        
+        <p>
+          For more installation options, see the <a href="./installation.html">Installation</a> page.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Creating Your First Store</h2>
+        
+        <p>
+          Let's create a simple counter application to demonstrate EffiState's basic functionality:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+// Create a store with initial state
+const store = createStore({
+  count: 0
+});
+
+// Get the current count
+console.log(store.get().count); // 0
+
+// Update the count
+store.set({ count: 1 });
+console.log(store.get().count); // 1
+
+// Increment the count based on current value
+store.set({ count: store.get().count + 1 });
+console.log(store.get().count); // 2</code></pre>
+      </section>
+      
+      <section>
+        <h2>Subscribing to Changes</h2>
+        
+        <p>
+          You can subscribe to state changes to react when data updates:
+        </p>
+        
+        <pre><code class="language-javascript">// Subscribe to all state changes
+const unsubscribe = store.subscribe((newState, oldState) => {
+  console.log('State changed!', newState, oldState);
+  
+  // Update UI or trigger side effects
+  document.getElementById('counter').textContent = newState.count;
+});
+
+// Later, when you no longer need the subscription
+unsubscribe();</code></pre>
+      </section>
+      
+      <section>
+        <h2>Using with UI</h2>
+        
+        <p>
+          Let's create a simple counter UI that uses our store:
+        </p>
+        
+        <pre><code class="language-html">&lt;div id="counter-app"&gt;
+  &lt;h2&gt;Counter: &lt;span id="counter-value"&gt;0&lt;/span&gt;&lt;/h2&gt;
+  &lt;button id="increment"&gt;Increment&lt;/button&gt;
+  &lt;button id="decrement"&gt;Decrement&lt;/button&gt;
+  &lt;button id="reset"&gt;Reset&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+// Create store
+const store = createStore({
+  count: 0
+});
+
+// DOM elements
+const counterValue = document.getElementById('counter-value');
+const incrementBtn = document.getElementById('increment');
+const decrementBtn = document.getElementById('decrement');
+const resetBtn = document.getElementById('reset');
+
+// Subscribe to changes
+store.subscribe((state) => {
+  counterValue.textContent = state.count;
+});
+
+// Event handlers
+incrementBtn.addEventListener('click', () => {
+  store.set({ count: store.get().count + 1 });
+});
+
+decrementBtn.addEventListener('click', () => {
+  store.set({ count: store.get().count - 1 });
+});
+
+resetBtn.addEventListener('click', () => {
+  store.set({ count: 0 });
+});</code></pre>
+      </section>
+      
+      <section>
+        <h2>Using with React</h2>
+        
+        <p>
+          EffiState integrates smoothly with React:
+        </p>
+        
+        <pre><code class="language-javascript">import React from 'react';
+import { createStore } from 'effistate';
+import { createReactHooks } from 'effistate-react';
+
+// Create a store
+const store = createStore({
+  count: 0
+});
+
+// Create React hooks
+const { useStore, useSelector } = createReactHooks(store);
+
+// Counter component
+function Counter() {
+  // Get the entire store state
+  const state = useStore();
+  
+  // Or select just what you need
+  const count = useSelector(state => state.count);
+  
+  return (
+    <div>
+      <h2>Counter: {count}</h2>
+      <button onClick={() => store.set({ count: count + 1 })}>Increment</button>
+      <button onClick={() => store.set({ count: count - 1 })}>Decrement</button>
+      <button onClick={() => store.set({ count: 0 })}>Reset</button>
+    </div>
+  );
+}</code></pre>
+      </section>
+      
+      <div class="callout">
+        <h3>Next Steps</h3>
+        <p>
+          Now that you understand the basics, continue exploring:
+        </p>
+        <ul>
+          <li>Learn about the <a href="./core-concepts/store.html">Store</a> in depth</li>
+          <li>Understand how <a href="./core-concepts/state.html">State</a> works</li>
+          <li>Explore <a href="./core-concepts/subscriptions.html">Subscriptions</a> for reactive updates</li>
+          <li>Use <a href="./core-concepts/selectors.html">Selectors</a> for derived data</li>
+        </ul>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="./index.html" class="prev">← Previous: Documentation</a>
+        <a href="./installation.html" class="next">Next: Installation →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/docs.js"></script>
+</body>
+</html> 

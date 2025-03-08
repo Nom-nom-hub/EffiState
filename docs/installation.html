@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installation - EffiState</title>
+  <meta name="description" content="How to install EffiState in your project">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="./index.html">Documentation</a></li>
+            <li><a href="./getting-started.html">Getting Started</a></li>
+            <li><a href="./installation.html" class="active">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./core-concepts/store.html">Store</a></li>
+            <li><a href="./core-concepts/state.html">State</a></li>
+            <li><a href="./core-concepts/subscriptions.html">Subscriptions</a></li>
+            <li><a href="./core-concepts/selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="./advanced/middleware.html">Middleware</a></li>
+            <li><a href="./advanced/persistence.html">Persistence</a></li>
+            <li><a href="./advanced/devtools.html">DevTools</a></li>
+            <li><a href="./performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="./integrations/react.html">React</a></li>
+            <li><a href="./integrations/vue.html">Vue</a></li>
+            <li><a href="./integrations/svelte.html">Svelte</a></li>
+            <li><a href="./integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Installation</h1>
+      
+      <p class="lead">
+        Learn how to install EffiState in your JavaScript or TypeScript project.
+      </p>
+      
+      <section>
+        <h2>Using Package Managers</h2>
+        
+        <h3>npm</h3>
+        <pre><code class="language-bash">npm install effistate</code></pre>
+        
+        <h3>yarn</h3>
+        <pre><code class="language-bash">yarn add effistate</code></pre>
+        
+        <h3>pnpm</h3>
+        <pre><code class="language-bash">pnpm add effistate</code></pre>
+      </section>
+      
+      <section>
+        <h2>Framework Integrations</h2>
+        
+        <p>
+          EffiState provides dedicated integration packages for popular frameworks:
+        </p>
+        
+        <h3>React</h3>
+        <pre><code class="language-bash">npm install effistate effistate-react</code></pre>
+        
+        <h3>Vue</h3>
+        <pre><code class="language-bash">npm install effistate effistate-vue</code></pre>
+        
+        <h3>Svelte</h3>
+        <pre><code class="language-bash">npm install effistate effistate-svelte</code></pre>
+        
+        <h3>Angular</h3>
+        <pre><code class="language-bash">npm install effistate effistate-angular</code></pre>
+      </section>
+      
+      <section>
+        <h2>Using CDN</h2>
+        
+        <p>
+          You can also use EffiState directly from a CDN:
+        </p>
+        
+        <pre><code class="language-html">&lt;script src="https://cdn.jsdelivr.net/npm/effistate@latest/dist/effistate.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  // EffiState is available as a global variable
+  const store = EffiState.createStore({ count: 0 });
+&lt;/script&gt;</code></pre>
+      </section>
+      
+      <section>
+        <h2>Verifying Installation</h2>
+        
+        <p>
+          Create a simple store to verify your installation:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+
+const store = createStore({ count: 0 });
+console.log(store.get()); // { count: 0 }
+
+store.set({ count: 1 });
+console.log(store.get()); // { count: 1 }</code></pre>
+        
+        <p>
+          If this code runs without errors, EffiState is correctly installed.
+        </p>
+      </section>
+      
+      <div class="callout callout-info">
+        <h3>TypeScript Support</h3>
+        <p>
+          EffiState includes built-in TypeScript typings, so no additional packages are required for TypeScript projects.
+        </p>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="./getting-started.html" class="prev">← Previous: Getting Started</a>
+        <a href="./core-concepts/store.html" class="next">Next: Store →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/docs.js"></script>
+</body>
+</html> 

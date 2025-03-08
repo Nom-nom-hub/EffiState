@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance - EffiState</title>
+  <meta name="description" content="Learn how to optimize performance with EffiState">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="./index.html">Documentation</a></li>
+            <li><a href="./getting-started.html">Getting Started</a></li>
+            <li><a href="./installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./core-concepts/store.html">Store</a></li>
+            <li><a href="./core-concepts/state.html">State</a></li>
+            <li><a href="./core-concepts/subscriptions.html">Subscriptions</a></li>
+            <li><a href="./core-concepts/selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="./advanced/middleware.html">Middleware</a></li>
+            <li><a href="./advanced/persistence.html">Persistence</a></li>
+            <li><a href="./advanced/devtools.html">DevTools</a></li>
+            <li><a href="./performance.html" class="active">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="./integrations/react.html">React</a></li>
+            <li><a href="./integrations/vue.html">Vue</a></li>
+            <li><a href="./integrations/svelte.html">Svelte</a></li>
+            <li><a href="./integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Performance Optimization</h1>
+      
+      <p class="lead">
+        While EffiState is designed to be fast by default, these best practices can help you optimize your application for maximum performance.
+      </p>
+      
+      <section>
+        <h2>Use Granular Subscriptions</h2>
+        
+        <p>
+          Subscribe to specific parts of your state rather than the entire store:
+        </p>
+        
+        <pre><code class="language-javascript">// Inefficient - reacts to any state change
+store.subscribe(state => {
+  updateUserDisplay(state.user);
+});
+
+// Efficient - only reacts to user changes
+store.subscribe(
+  user => updateUserDisplay(user),
+  'user'
+);</code></pre>
+        
+        <p>
+          This prevents unnecessary callbacks when unrelated state changes.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Optimize Selectors</h2>
+        
+        <p>
+          Explicitly define dependencies for your selectors:
+        </p>
+        
+        <pre><code class="language-javascript">// Without explicit dependencies, this computes on any state change
+const expensiveSelector = store.createSelector(state => {
+  return expensiveComputation(state.items);
+});
+
+// With explicit dependencies, this only recomputes when 'items' changes
+const optimizedSelector = store.createSelector(
+  state => expensiveComputation(state.items),
+  ['items']
+);</code></pre>
+        
+        <p>
+          Combine selectors for complex derived data:
+        </p>
+        
+        <pre><code class="language-javascript">// Build complex selectors from simpler ones
+const activeItems = store.createSelector(
+  state => state.items.filter(item => item.active),
+  ['items']
+);
+
+const sortedActiveItems = store.createSelector(
+  () => [...activeItems()].sort((a, b) => a.name.localeCompare(b.name)),
+  ['items'] // Still depends on items, since activeItems does
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Batch Updates</h2>
+        
+        <p>
+          Combine multiple state changes into a single update:
+        </p>
+        
+        <pre><code class="language-javascript">// Inefficient - triggers multiple updates
+function processForm(formData) {
+  store.set({ loading: true });
+  store.set({ user: formData.user });
+  store.set({ preferences: formData.preferences });
+  store.set({ loading: false });
+}
+
+// Efficient - triggers a single update
+function processForm(formData) {
+  store.set({
+    loading: true,
+    user: formData.user,
+    preferences: formData.preferences,
+    loading: false
+  });
+}</code></pre>
+        
+        <p>
+          For more complex cases, use the batch helper:
+        </p>
+        
+        <pre><code class="language-javascript">import { batch } from 'effistate';
+
+batch(() => {
+  // All of these updates will be batched into a single state change
+  store.set({ count: store.get().count + 1 });
+  store.setPath('user.lastActive', Date.now());
+  store.array.push('logs', { action: 'increment', time: Date.now() });
+});</code></pre>
+      </section>
+      
+      <section>
+        <h2>Use Immutable Data Structures</h2>
+        
+        <p>
+          Enable immutability for better performance:
+        </p>
+        
+        <pre><code class="language-javascript">const store = createStore(
+  initialState,
+  {
+    immutable: true
+  }
+);</code></pre>
+        
+        <p>
+          This allows EffiState to use reference equality checks for performance optimizations.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Optimize React Integration</h2>
+        
+        <p>
+          When using EffiState with React, be selective about what you subscribe to:
+        </p>
+        
+        <pre><code class="language-jsx">// Inefficient - component re-renders on any state change
+function UserProfile() {
+  const state = useStore();
+  return <div>{state.user.name}</div>;
+}
+
+// Efficient - component only re-renders when user.name changes
+function UserProfile() {
+  const name = useSelector(state => state.user.name);
+  return <div>{name}</div>;
+}</code></pre>
+        
+        <p>
+          Use memoization for expensive components:
+        </p>
+        
+        <pre><code class="language-jsx">import React, { memo } from 'react';
+
+// This component only re-renders when its props change
+const MemoizedUserList = memo(function UserList({ users }) {
+  return (
+    <ul>
+      {users.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+});
+
+function UserDirectory() {
+  const users = useSelector(state => state.users);
+  return <MemoizedUserList users={users} />;
+}</code></pre>
+      </section>
+      
+      <section>
+        <h2>Performance Monitoring</h2>
+        
+        <p>
+          Use the performance monitoring plugin to identify bottlenecks:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore } from 'effistate';
+import { performancePlugin } from 'effistate/plugins';
+
+const store = createStore(
+  initialState,
+  {
+    plugins: [
+      performancePlugin({
+        warnThreshold: 10, // Log warning for operations taking > 10ms
+        enabled: process.env.NODE_ENV === 'development'
+      })
+    ]
+  }
+);</code></pre>
+        
+        <p>
+          This helps identify slow selectors, expensive subscriptions, or inefficient state updates.
+        </p>
+      </section>
+      
+      <div class="callout callout-info">
+        <h3>Benchmark Before Optimizing</h3>
+        <p>
+          Remember to measure performance before and after your optimizations. Premature optimization without data can sometimes add complexity without providing real benefits.
+        </p>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="./advanced/devtools.html" class="prev">← Previous: DevTools</a>
+        <a href="./integrations/react.html" class="next">Next: React Integration →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/docs.js"></script>
+</body>
+</html> 

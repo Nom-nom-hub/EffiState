@@ -1,0 +1,73 @@
+Project Name: EffiState - An Efficient, Minimalist JavaScript State Management Library
+
+Objective:
+Create a lightweight and highly efficient state management library for JavaScript applications, with a minimal API and optimized performance. The library should support state management, component reactivity, and optional middleware, persistence, and debugging tools. It should be faster and more intuitive than popular libraries like Redux or Zustand, with minimal overhead and no unnecessary boilerplate.
+
+Requirements:
+
+Core Store Functionality:
+createStore(initialState): Create a store with an initial state. The store should have methods to get and set the state, as well as subscribe to state changes.
+get(): Returns the current state of the store.
+set(newState): Updates the state and triggers all subscribed listeners.
+subscribe(listener): Registers a listener (callback function) that will be invoked whenever the state changes. It should return an unsubscribe function to remove the listener.
+Reactivity:
+The library should allow for state-driven updates in a React-like manner using external stores.
+Use useSyncExternalStore to manage reactivity in React components.
+Middleware Support (Optional):
+Provide middleware for additional functionality like logging, error handling, etc.
+A withLogger middleware should be implemented to log state changes.
+Persistence Support (Optional):
+Include a withPersistence middleware that saves the state to localStorage and restores it on app load.
+Optimized Performance:
+The library must avoid using JavaScript Proxies to prevent performance bottlenecks.
+It should be lightweight, ideally under 1KB in size when minified.
+Ensure that state changes trigger only necessary updates to prevent excessive re-renders.
+No Boilerplate:
+The API should be minimal and intuitive. Avoid complex concepts like reducers or actions.
+The store should directly mutate the state, but with controlled reactivity to minimize unnecessary state updates.
+TypeScript Support:
+The library should have built-in TypeScript types for state and store operations to ensure type safety.
+Testing:
+Write unit tests for core functionality (creating stores, subscribing, setting, and getting state).
+Implement tests for the middleware (e.g., logging and persistence).
+Documentation:
+Provide clear and concise documentation explaining how to set up and use the library in both vanilla JS and React applications.
+Include examples of typical usage patterns and advanced features (middleware, persistence, etc.).
+Bonus Features:
+
+Consider adding features like DevTools integration or server-side state synchronization if applicable.
+Example Use Cases:
+Basic Store:
+const store = createStore({ count: 0 });
+
+store.subscribe((state) => console.log(state));  // Logs { count: 0 }
+store.set({ count: 1 });  // Logs { count: 1 }
+Using in React:
+import { useSyncExternalStore } from "react";
+
+const store = createStore({ count: 0 });
+
+function Counter() {
+  const state = useSyncExternalStore(store.subscribe, store.get);
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => store.set({ count: state.count + 1 })}>
+        Increment
+      </button>
+    </div>
+  );
+}
+With Persistence:
+const store = withPersistence(createStore({ count: 0 }), "counterState");
+
+store.set({ count: 10 });  // Saves to localStorage
+With Logger Middleware:
+const store = withLogger(createStore({ count: 0 }));
+store.set({ count: 1 });  // Logs "Prev State: { count: 0 }" and "New State: { count: 1 }"
+Key Points:
+
+The focus is on performance and simplicity, with an extremely minimalistic API compared to frameworks like Redux.
+The library should be suitable for React applications but should also work well in vanilla JavaScript environments.
+No boilerplate or complex setup – just create a store and use it.

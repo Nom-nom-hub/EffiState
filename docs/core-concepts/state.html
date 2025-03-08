@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State - EffiState Core Concepts</title>
+  <meta name="description" content="Learn about the State concept in EffiState">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../index.html">Docs</a>
+          <a href="../examples.html">Examples</a>
+          <a href="../../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="../index.html">Documentation</a></li>
+            <li><a href="../getting-started.html">Getting Started</a></li>
+            <li><a href="../installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="./store.html">Store</a></li>
+            <li><a href="./state.html" class="active">State</a></li>
+            <li><a href="./subscriptions.html">Subscriptions</a></li>
+            <li><a href="./selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="../advanced/middleware.html">Middleware</a></li>
+            <li><a href="../advanced/persistence.html">Persistence</a></li>
+            <li><a href="../advanced/devtools.html">DevTools</a></li>
+            <li><a href="../performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="../integrations/react.html">React</a></li>
+            <li><a href="../integrations/vue.html">Vue</a></li>
+            <li><a href="../integrations/svelte.html">Svelte</a></li>
+            <li><a href="../integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>State</h1>
+      
+      <p class="lead">
+        In EffiState, state represents the complete data model of your application at any given point in time.
+      </p>
+      
+      <section>
+        <h2>State Structure</h2>
+        
+        <p>
+          EffiState works with plain JavaScript objects as state. The structure is entirely up to you:
+        </p>
+        
+        <pre><code class="language-javascript">// Simple counter state
+const counterState = {
+  count: 0
+};
+
+// Todo app state
+const todoState = {
+  todos: [
+    { id: 1, text: 'Learn EffiState', completed: false },
+    { id: 2, text: 'Build an app', completed: false }
+  ],
+  filter: 'all',
+  loading: false
+};
+
+// Complex application state
+const appState = {
+  user: {
+    id: 'u1',
+    name: 'John Smith',
+    preferences: {
+      theme: 'dark',
+      notifications: true
+    }
+  },
+  posts: [],
+  ui: {
+    sidebar: {
+      open: true,
+      width: 240
+    },
+    modal: null
+  }
+};</code></pre>
+      </section>
+      
+      <section>
+        <h2>State Immutability</h2>
+        
+        <p>
+          By default, EffiState treats state as immutable, creating new copies when updates occur:
+        </p>
+        
+        <pre><code class="language-javascript">const store = createStore({ count: 0 });
+
+// This creates a new state object
+store.set({ count: 1 });
+
+// This will throw an error if immutability is enabled
+store.get().count = 1; // Error: Cannot assign to read-only property</code></pre>
+        
+        <p>
+          Immutability helps prevent bugs and enables performance optimizations through reference equality checks.
+        </p>
+      </section>
+      
+      <section>
+        <h2>Updating State</h2>
+        
+        <p>
+          Use the <code>set</code> method to update state:
+        </p>
+        
+        <pre><code class="language-javascript">// Replace the entire state
+store.set({ count: 1, user: { name: 'Alice' } });
+
+// Merge with existing state (shallow merge)
+store.set({ count: store.get().count + 1 });
+
+// Update nested properties
+store.set({
+  user: {
+    ...store.get().user,
+    name: 'Bob'
+  }
+});</code></pre>
+        
+        <p>
+          For deeply nested updates, you can use the path-based setter:
+        </p>
+        
+        <pre><code class="language-javascript">// Update a nested property directly
+store.setPath('user.preferences.theme', 'light');</code></pre>
+      </section>
+      
+      <div class="navigation-links">
+        <a href="./store.html" class="prev">← Previous: Store</a>
+        <a href="./subscriptions.html" class="next">Next: Subscriptions →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/docs.js"></script>
+</body>
+</html> 

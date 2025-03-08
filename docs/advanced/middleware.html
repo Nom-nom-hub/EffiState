@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Middleware - EffiState Advanced Concepts</title>
+  <meta name="description" content="Learn about middleware in EffiState for advanced state management">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../../index.html">Home</a>
+          <a href="../index.html">Docs</a>
+          <a href="../examples.html">Examples</a>
+          <a href="../../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Introduction</h3>
+          <ul>
+            <li><a href="../index.html">Documentation</a></li>
+            <li><a href="../getting-started.html">Getting Started</a></li>
+            <li><a href="../installation.html">Installation</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Core Concepts</h3>
+          <ul>
+            <li><a href="../core-concepts/store.html">Store</a></li>
+            <li><a href="../core-concepts/state.html">State</a></li>
+            <li><a href="../core-concepts/subscriptions.html">Subscriptions</a></li>
+            <li><a href="../core-concepts/selectors.html">Selectors</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Advanced</h3>
+          <ul>
+            <li><a href="./middleware.html" class="active">Middleware</a></li>
+            <li><a href="./persistence.html">Persistence</a></li>
+            <li><a href="./devtools.html">DevTools</a></li>
+            <li><a href="../performance.html">Performance</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <h3>Integrations</h3>
+          <ul>
+            <li><a href="../integrations/react.html">React</a></li>
+            <li><a href="../integrations/vue.html">Vue</a></li>
+            <li><a href="../integrations/svelte.html">Svelte</a></li>
+            <li><a href="../integrations/angular.html">Angular</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Middleware</h1>
+      
+      <p class="lead">
+        Middleware provides a way to extend EffiState's functionality by injecting custom logic between state updates.
+      </p>
+      
+      <section>
+        <h2>Understanding Middleware</h2>
+        
+        <p>
+          Middleware sits between state update operations and their execution, allowing you to:
+        </p>
+        
+        <ul>
+          <li>Log state changes</li>
+          <li>Perform validation</li>
+          <li>Trigger side effects</li>
+          <li>Transform updates</li>
+          <li>Implement cross-cutting concerns</li>
+        </ul>
+      </section>
+      
+      <section>
+        <h2>Creating Middleware</h2>
+        
+        <p>
+          A middleware is a function with a specific signature:
+        </p>
+        
+        <pre><code class="language-javascript">const loggingMiddleware = store => next => (action, prevState) => {
+  console.log('Previous state:', prevState);
+  console.log('Action:', action);
+  
+  // Call the next middleware in the chain
+  const result = next(action, prevState);
+  
+  console.log('Next state:', store.get());
+  return result;
+};</code></pre>
+      </section>
+      
+      <section>
+        <h2>Adding Middleware to a Store</h2>
+        
+        <p>
+          Use the <code>applyMiddleware</code> function to add middleware to your store:
+        </p>
+        
+        <pre><code class="language-javascript">import { createStore, applyMiddleware } from 'effistate';
+
+// Create middleware
+const loggingMiddleware = store => next => (action, prevState) => {
+  console.log('State update:', action);
+  return next(action, prevState);
+};
+
+// Create store with middleware
+const store = createStore(
+  { count: 0 },
+  {
+    middleware: [loggingMiddleware]
+  }
+);
+
+// Now all state updates will be logged
+store.set({ count: 1 }); // Logs: State update: { count: 1 }</code></pre>
+      </section>
+      
+      <section>
+        <h2>Common Middleware Examples</h2>
+        
+        <h3>Logging Middleware</h3>
+        
+        <pre><code class="language-javascript">const loggingMiddleware = store => next => (action, prevState) => {
+  console.group('State Update');
+  console.log('Previous:', prevState);
+  console.log('Update:', action);
+  
+  const result = next(action, prevState);
+  
+  console.log('Current:', store.get());
+  console.groupEnd();
+  return result;
+};</code></pre>
+        
+        <h3>Validation Middleware</h3>
+        
+        <pre><code class="language-javascript">const validationMiddleware = store => next => (action, prevState) => {
+  // Example validation rule
+  if (action.user && !action.user.email) {
+    console.error('User must have an email');
+    return prevState; // Don't update state
+  }
+  
+  return next(action, prevState);
+};</code></pre>
+        
+        <h3>Local Storage Persistence</h3>
+        
+        <pre><code class="language-javascript">const persistenceMiddleware = store => next => (action, prevState) => {
+  const result = next(action, prevState);
+  
+  // Save state to localStorage after each update
+  localStorage.setItem('app-state', JSON.stringify(store.get()));
+  
+  return result;
+};</code></pre>
+      </section>
+      
+      <section>
+        <h2>Middleware Composition</h2>
+        
+        <p>
+          You can apply multiple middleware which will be executed in the order they're provided:
+        </p>
+        
+        <pre><code class="language-javascript">const store = createStore(
+  { count: 0 },
+  {
+    middleware: [
+      loggingMiddleware,    // Runs first
+      validationMiddleware,  // Runs second
+      persistenceMiddleware  // Runs third
+    ]
+  }
+);</code></pre>
+      </section>
+      
+      <section>
+        <h2>Asynchronous Middleware</h2>
+        
+        <p>
+          You can implement async operations in middleware:
+        </p>
+        
+        <pre><code class="language-javascript">const apiMiddleware = store => next => async (action, prevState) => {
+  // Handle async operations
+  if (action.type === 'FETCH_USER') {
+    try {
+      // Update state to indicate loading
+      next({ loading: true }, prevState);
+      
+      // Make API call
+      const response = await fetch(`/api/users/${action.userId}`);
+      const user = await response.json();
+      
+      // Update state with the fetched data
+      return next({ loading: false, user }, store.get());
+    } catch (error) {
+      // Handle error
+      return next({ loading: false, error: error.message }, store.get());
+    }
+  }
+  
+  // For other actions, pass through
+  return next(action, prevState);
+};</code></pre>
+      </section>
+      
+      <div class="callout callout-warning">
+        <h3>Middleware Considerations</h3>
+        <p>
+          Keep your middleware simple and focused on a single responsibility. Complex middleware can be harder to debug and may impact performance.
+        </p>
+      </div>
+      
+      <div class="navigation-links">
+        <a href="../core-concepts/selectors.html" class="prev">← Previous: Selectors</a>
+        <a href="./persistence.html" class="next">Next: Persistence →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../../scripts/docs.js"></script>
+</body>
+</html> 

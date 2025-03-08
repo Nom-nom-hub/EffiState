@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Guide - EffiState</title>
+  <meta name="description" content="Migrate your existing applications to EffiState from Redux, MobX, or other state management libraries">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/docs.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="../index.html" class="logo">EffiState</a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="../blog/index.html">Blog</a>
+        </nav>
+        <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-container">
+    <aside class="sidebar">
+      <nav>
+        <div class="nav-group">
+          <h3>Migration Guide</h3>
+          <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#redux">From Redux</a></li>
+            <li><a href="#mobx">From MobX</a></li>
+            <li><a href="#zustand">From Zustand</a></li>
+            <li><a href="#recoil">From Recoil</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1>Migration Guide</h1>
+      
+      <p class="lead">
+        Learn how to migrate your existing application to EffiState from other state management libraries.
+      </p>
+
+      <section id="overview">
+        <h2>Migration Overview</h2>
+        
+        <p>
+          Migrating to EffiState from another state management library can be done incrementally in most cases. 
+          This guide provides step-by-step instructions for the most common libraries.
+        </p>
+        
+        <div class="callout">
+          <h3>Migration Tools</h3>
+          <p>
+            We provide migration utilities for popular libraries in the <code>effistate/migration</code> package. 
+            These utilities help automate much of the migration process.
+          </p>
+        </div>
+        
+        <p>General migration steps:</p>
+        <ol>
+          <li>Install EffiState alongside your existing state library</li>
+          <li>Set up your initial EffiState store with equivalent state</li>
+          <li>Convert your components one by one to use EffiState</li>
+          <li>Replace state-changing logic with EffiState equivalents</li>
+          <li>Remove the old library when migration is complete</li>
+        </ol>
+      </section>
+
+      <section id="redux">
+        <h2>Migrating from Redux</h2>
+        
+        <h3>Conceptual Differences</h3>
+        
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Redux Concept</th>
+              <th>EffiState Equivalent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Store</td>
+              <td>Store (created with <code>createStore</code>)</td>
+            </tr>
+            <tr>
+              <td>Actions</td>
+              <td>Direct state updates (no action objects required)</td>
+            </tr>
+            <tr>
+              <td>Reducers</td>
+              <td>Not needed (direct state manipulation with <code>set</code>)</td>
+            </tr>
+            <tr>
+              <td>Action Creators</td>
+              <td>Plain functions that call <code>store.set</code></td>
+            </tr>
+            <tr>
+              <td>Selectors</td>
+              <td>Selectors (created with <code>createSelector</code>)</td>
+            </tr>
+            <tr>
+              <td>Middleware</td>
+              <td>Middleware (similar concept, different implementation)</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <h3>Step-by-Step Migration</h3>
+        
+        <h4>1. Install EffiState</h4>
+        
+        <pre><code class="language-bash">npm install effistate</code></pre>
+        
+        <h4>2. Set up the EffiState store</h4>
+        
+        <p>Convert your Redux initial state:</p>
+        
+        <pre><code class="language-javascript">// Before (Redux)
+import { createStore, combineReducers } from 'redux';
+
+const rootReducer = combineReducers({
+  todos: todosReducer,
+  user: userReducer
+});
+
+const reduxStore = createStore(rootReducer);</code></pre>
+
+        <pre><code class="language-javascript">// After (EffiState)
+import { createStore } from 'effistate';
+
+// Get initial state from your Redux store if needed
+const initialState = {
+  todos: [], 
+  user: { name: '', isAuthenticated: false }
+};
+
+const store = createStore(initialState);</code></pre>
+        
+        <h4>3. Convert actions and reducers</h4>
+        
+        <pre><code class="language-javascript">// Before (Redux)
+// Action types
+const ADD_TODO = 'ADD_TODO';
+const TOGGLE_TODO = 'TOGGLE_TODO';
+
+// Action creators
+function addTodo(text) {
+  return { type: ADD_TODO, payload: { text } };
+}
+
+function toggleTodo(id) {
+  return { type: TOGGLE_TODO, payload: { id } };
+}
+
+// Reducer
+function todosReducer(state = [], action) {
+  switch (action.type) {
+    case ADD_TODO:
+      return [...state, { 
+        id: Date.now(), 
+        text: action.payload.text, 
+        completed: false 
+      }];
+    case TOGGLE_TODO:
+      return state.map(todo => {
+        if (todo.id === action.payload.id) {
+          return { ...todo, completed: !todo.completed };
+        }
+        return todo;
+      });
+    default:
+      return state;
+  }
+}</code></pre>
+
+        <pre><code class="language-javascript">// After (EffiState)
+function addTodo(text) {
+  store.array.push('todos', {
+    id: Date.now(),
+    text,
+    completed: false
+  });
+}
+
+function toggleTodo(id) {
+  store.array.map('todos', todo => {
+    if (todo.id === id) {
+      return { ...todo, completed: !todo.completed };
+    }
+    return todo;
+  });
+}</code></pre>
+        
+        <h4>4. Convert React components</h4>
+        
+        <pre><code class="language-jsx">// Before (Redux with react-redux)
+import { connect } from 'react-redux';
+
+function TodoList({ todos, toggleTodo }) {
+  return (
+    <ul>
+      {todos.map(todo => (
+        <li
+          key={todo.id}
+          onClick={() => toggleTodo(todo.id)}
+          style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}
+        >
+          {todo.text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const mapStateToProps = state => ({
+  todos: state.todos
+});
+
+const mapDispatchToProps = {
+  toggleTodo
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoList);</code></pre>
+
+        <pre><code class="language-jsx">// After (EffiState with React hooks)
+import { createReactHooks } from 'effistate/react';
+
+const { useSelector } = createReactHooks(store);
+
+function TodoList() {
+  const todos = useSelector(state => state.todos);
+  
+  return (
+    <ul>
+      {todos.map(todo => (
+        <li
+          key={todo.id}
+          onClick={() => toggleTodo(todo.id)}
+          style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}
+        >
+          {todo.text}
+        </li>
+      ))}
+    </ul>
+  );
+}</code></pre>
+        
+        <h4>5. Automated Migration</h4>
+        
+        <p>For larger applications, use our migration utility:</p>
+        
+        <pre><code class="language-javascript">import { migrateFromRedux } from 'effistate/migration';
+
+// This will convert your Redux store to an EffiState store
+// and create action adapters that you can use during migration
+const { 
+  store, 
+  dispatchAction, 
+  mapReduxSelector 
+} = migrateFromRedux(reduxStore);
+
+// Use the original Redux action with the adapter during migration
+dispatchAction(addTodo('Test'));</code></pre>
+      </section>
+
+      <section id="mobx">
+        <h2>Migrating from MobX</h2>
+        
+        <h3>Conceptual Differences</h3>
+        
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>MobX Concept</th>
+              <th>EffiState Equivalent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Observable state</td>
+              <td>Store state</td>
+            </tr>
+            <tr>
+              <td>Actions</td>
+              <td>Functions that call <code>store.set</code></td>
+            </tr>
+            <tr>
+              <td>Computed values</td>
+              <td>Selectors</td>
+            </tr>
+            <tr>
+              <td>Reactions</td>
+              <td>Subscriptions</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <p>
+          The migration steps are similar to Redux, but MobX's reactive approach 
+          makes the transition to EffiState more straightforward in many cases.
+        </p>
+        
+        <pre><code class="language-javascript">// Before (MobX)
+import { makeObservable, observable, action, computed } from 'mobx';
+
+class TodoStore {
+  todos = [];
+  
+  constructor() {
+    makeObservable(this, {
+      todos: observable,
+      addTodo: action,
+      toggleTodo: action,
+      incompleteTodos: computed
+    });
+  }
+  
+  addTodo(text) {
+    this.todos.push({
+      id: Date.now(),
+      text,
+      completed: false
+    });
+  }
+  
+  toggleTodo(id) {
+    const todo = this.todos.find(todo => todo.id === id);
+    if (todo) {
+      todo.completed = !todo.completed;
+    }
+  }
+  
+  get incompleteTodos() {
+    return this.todos.filter(todo => !todo.completed);
+  }
+}
+
+const todoStore = new TodoStore();</code></pre>
+
+        <pre><code class="language-javascript">// After (EffiState)
+import { createStore } from 'effistate';
+
+const initialState = {
+  todos: []
+};
+
+const store = createStore(initialState);
+
+function addTodo(text) {
+  store.array.push('todos', {
+    id: Date.now(),
+    text,
+    completed: false
+  });
+}
+
+function toggleTodo(id) {
+  store.array.map('todos', todo => {
+    if (todo.id === id) {
+      return { ...todo, completed: !todo.completed };
+    }
+    return todo;
+  });
+}
+
+const incompleteTodos = store.createSelector(
+  state => state.todos.filter(todo => !todo.completed),
+  ['todos']
+);</code></pre>
+      </section>
+
+      <!-- Other migration sections would continue here -->
+
+      <div class="callout callout-info">
+        <h3>Need migration help?</h3>
+        <p>Join our <a href="https://discord.gg/effistate" target="_blank">Discord community</a> for personalized migration assistance and advice.</p>
+      </div>
+
+      <div class="navigation-links">
+        <a href="./api-reference.html">Next: API Reference →</a>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2023 EffiState. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="https://github.com/effistate/effistate" target="_blank">GitHub</a>
+        <a href="https://discord.gg/effistate" target="_blank">Discord</a>
+        <a href="https://twitter.com/effistate" target="_blank">Twitter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../scripts/docs.js"></script>
+</body>
+</html> 

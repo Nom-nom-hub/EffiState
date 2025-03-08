@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EffiState - The #1 State Management Library</title>
+  <meta name="description" content="Ultra-fast, developer-friendly state management with the smallest bundle size. Works with React, Vue, Angular, or vanilla JS.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --secondary: #10b981;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --gray-light: #e2e8f0;
+      --success: #22c55e;
+      --warning: #eab308;
+      --danger: #ef4444;
+      --radius: 8px;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    /* Header */
+    header {
+      background-color: var(--light);
+      border-bottom: 1px solid var(--gray-light);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-links a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      background-color: var(--primary);
+      color: white;
+      border-radius: var(--radius);
+      font-weight: 500;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-secondary {
+      background-color: var(--secondary);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #0ea271;
+    }
+    
+    /* Hero */
+    .hero {
+      padding: 5rem 0;
+      background: linear-gradient(to bottom, var(--light), white);
+      text-align: center;
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--gray);
+      max-width: 760px;
+      margin: 0 auto 2rem;
+    }
+    
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      margin-top: 3rem;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: var(--gray);
+      font-weight: 500;
+    }
+    
+    /* Features */
+    .features {
+      padding: 5rem 0;
+      background-color: white;
+    }
+    
+    .section-heading {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .section-heading h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .section-heading p {
+      color: var(--gray);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    
+    .feature-card {
+      padding: 2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-light);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background-color: rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    
+    .feature-card p {
+      color: var(--gray);
+    }
+    
+    /* Code Examples */
+    .code-examples {
+      padding: 5rem 0;
+      background-color: var(--light);
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-light);
+      margin-bottom: 2rem;
+    }
+    
+    .tab {
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .code-block {
+      background-color: var(--dark);
+      color: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: monospace;
+      line-height: 1.5;
+    }
+    
+    /* Comparison */
+    .comparison {
+      padding: 5rem 0;
+      background-color: white;
+    }
+    
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .comparison-table th {
+      font-weight: 600;
+      background-color: var(--light);
+    }
+    
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .check {
+      color: var(--success);
+    }
+    
+    .x {
+      color: var(--danger);
+    }
+    
+    /* Testimonials */
+    .testimonials {
+      padding: 5rem 0;
+      background-color: var(--light);
+    }
+    
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    
+    .testimonial-card {
+      background-color: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .testimonial-text {
+      font-style: italic;
+      margin-bottom: 1.5rem;
+    }
+    
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+    }
+    
+    .author-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      margin-right: 1rem;
+      object-fit: cover;
+    }
+    
+    .author-name {
+      font-weight: 600;
+    }
+    
+    .author-title {
+      color: var(--gray);
+      font-size: 0.875rem;
+    }
+    
+    /* Getting Started */
+    .getting-started {
+      padding: 5rem 0;
+      background-color: white;
+    }
+    
+    /* Call to action */
+    .cta {
+      padding: 5rem 0;
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+    }
+    
+    .cta h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .cta p {
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      opacity: 0.9;
+    }
+    
+    .cta .btn {
+      background-color: white;
+      color: var(--primary);
+    }
+    
+    .cta .btn:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Footer */
+    footer {
+      background-color: var(--dark);
+      color: white;
+      padding: 4rem 0 2rem;
+    }
+    
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .footer-logo {
+      color: white;
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    
+    .footer-links h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .footer-links li {
+      margin-bottom: 0.75rem;
+    }
+    
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: white;
+    }
+    
+    .copyright {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.875rem;
+    }
+    
+    /* Tab functionality styles */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <a href="#" class="logo">EffiState</a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="/docs/examples.html">Examples</a>
+        <a href="#comparison">Comparison</a>
+        <a href="/docs/index.html">Docs</a>
+      </nav>
+      <a href="https://github.com/effistate/effistate" target="_blank" class="btn">GitHub</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>The Ultimate State Management Solution</h1>
+      <p>Ultra-fast, developer-friendly state management with the smallest bundle size. Works with React, Vue, Angular, or vanilla JS.</p>
+      <div>
+        <a href="#getting-started" class="btn">Get Started</a>
+        <a href="#examples" class="btn btn-secondary" style="margin-left: 1rem;">See Examples</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-value">2.3KB</div>
+          <div class="stat-label">Minified Size</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">4x</div>
+          <div class="stat-label">Faster Updates</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0 KB</div>
+          <div class="stat-label">Dependencies</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Everything You Need, Nothing You Don't</h2>
+        <p>EffiState combines blazing performance with developer-friendly APIs and zero dependencies.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🚀</div>
+          <h3>Maximum Performance</h3>
+          <p>Optimized for modern JavaScript engines with specialized fast paths for common operations.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Intelligent Updates</h3>
+          <p>Structural sharing automatically avoids unnecessary renders and updates.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧩</div>
+          <h3>Framework Agnostic</h3>
+          <p>First-class bindings for React, Vue, and Angular with a consistent API.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛠️</div>
+          <h3>Developer Tools</h3>
+          <p>Deep integration with Redux DevTools for time-travel debugging and state inspection.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Offline Support</h3>
+          <p>Built-in persistence and synchronization for offline-first applications.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Tree-Shakeable</h3>
+          <p>Import only what you need, reducing your bundle size even further.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="code-examples" id="examples">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Simple API, Powerful Capabilities</h2>
+        <p>Built for developer happiness and maximum productivity.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" data-tab="basic">Basic Usage</div>
+        <div class="tab" data-tab="react">React Integration</div>
+        <div class="tab" data-tab="vue">Vue Integration</div>
+        <div class="tab" data-tab="advanced">Advanced Features</div>
+      </div>
+      
+      <div class="tab-content active" id="basic-content">
+        <div class="code-block">
+          <pre><code>// Creating and using a store is incredibly simple
+import { createStore } from 'effistate';
+
+// Initialize with any state object
+const store = createStore({
+  count: 0,
+  todos: [],
+  user: { name: 'Guest' }
+});
+
+// Get the current state
+const state = store.getAll();
+
+// Update state (partial updates work)
+store.set({ count: state.count + 1 });
+
+// Subscribe to changes
+store.subscribe((newState, oldState) => {
+  console.log('State changed:', newState);
+});</code></pre>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="react-content">
+        <div class="code-block">
+          <pre><code>// React integration with hooks
+import { createStore } from 'effistate';
+import { createReactHooks } from 'effistate/react';
+
+// Create your store
+const store = createStore({
+  todos: [],
+  filter: 'all'
+});
+
+// Create React hooks
+const { useStore, useSelector, useAction } = createReactHooks(store);
+
+// Use in your components
+function TodoApp() {
+  // Get specific parts of state with automatic re-renders
+  const todos = useSelector(state => state.todos);
+  const filter = useSelector('filter');
+  
+  // Create bound actions
+  const addTodo = useAction((store, text) => {
+    store.set({
+      todos: [...store.get().todos, { id: Date.now(), text, completed: false }]
+    });
+  });
+  
+  return (
+    <div>
+      <input 
+        onKeyDown={e => e.key === 'Enter' && addTodo(e.target.value)}
+        placeholder="Add todo"
+      />
+      {/* Rest of component... */}
+    </div>
+  );
+}</code></pre>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="vue-content">
+        <div class="code-block">
+          <pre><code>// Vue 3 Composition API integration
+import { createStore } from 'effistate';
+import { createVueBindings } from 'effistate/vue';
+
+// Create your store
+const store = createStore({
+  products: [],
+  cart: []
+});
+
+// Create Vue bindings
+const { useState, useSelector, createStorePlugin } = createVueBindings(store);
+
+// Use in your components
+export default {
+  setup() {
+    // Get reactive state
+    const [state, setState] = useState();
+    
+    // Or select specific parts of state
+    const products = useSelector('products');
+    const cartCount = useSelector(state => state.cart.length);
+    
+    // Add methods that update state
+    const addToCart = (product) => {
+      setState({
+        cart: [...state.value.cart, product]
+      });
+    };
+    
+    return {
+      products,
+      cartCount,
+      addToCart
+    };
+  }
+}</code></pre>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="advanced-content">
+        <div class="code-block">
+          <pre><code>// Advanced features for power users
+import { createStore, withServerSync } from 'effistate';
+
+// Create store with advanced options
+const store = createStore(initialState, {
+  enableDevTools: true,
+  immutable: true,
+  enableStructuralSharing: true,
+  historyLimit: 50
+});
+
+// Enable time-travel debugging
+const history = store.enableHistory();
+history.undo(); // Go back in time
+history.redo(); // Go forward in time
+
+// Specialized array operations (2-3x faster)
+store.array.push('todos', newTodo);
+store.array.filter('todos', todo => !todo.completed);
+store.array.map('todos', todo => ({ ...todo, modified: true }));
+
+// Create optimized selectors
+const incompleteTodos = store.createSelector(
+  state => state.todos.filter(todo => !todo.completed),
+  ['todos'] // Only recompute when todos change
+);
+
+// Enhanced with server synchronization
+const syncedStore = withServerSync(store, {
+  fetchFn: async () => (await fetch('/api/state')).json(),
+  pushFn: async (state) => fetch('/api/state', {
+    method: 'POST',
+    body: JSON.stringify(state)
+  }),
+  syncInterval: 30000 // Auto-sync every 30 seconds
+});</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="comparison" id="comparison">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Why Choose EffiState?</h2>
+        <p>EffiState combines the best of all state management libraries without the drawbacks.</p>
+      </div>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>EffiState</th>
+            <th>Redux</th>
+            <th>Zustand</th>
+            <th>MobX</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bundle Size</td>
+            <td>2.3 KB</td>
+            <td>30.5 KB</td>
+            <td>5.1 KB</td>
+            <td>22.4 KB</td>
+          </tr>
+          <tr>
+            <td>Boilerplate</td>
+            <td>Minimal</td>
+            <td>Heavy</td>
+            <td>Light</td>
+            <td>Moderate</td>
+          </tr>
+          <tr>
+            <td>Performance</td>
+            <td>Excellent</td>
+            <td>Good</td>
+            <td>Very Good</td>
+            <td>Good</td>
+          </tr>
+          <tr>
+            <td>Framework Support</td>
+            <td>All</td>
+            <td>All</td>
+            <td>React-focused</td>
+            <td>All</td>
+          </tr>
+          <tr>
+            <td>Time-Travel Debugging</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="x">✗</span></td>
+          </tr>
+          <tr>
+            <td>Server Sync Built-in</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="x">✗</span></td>
+            <td><span class="x">✗</span></td>
+            <td><span class="x">✗</span></td>
+          </tr>
+          <tr>
+            <td>Persistence Built-in</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="x">✗</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="x">✗</span></td>
+          </tr>
+          <tr>
+            <td>Array Optimizations</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="x">✗</span></td>
+            <td><span class="x">✗</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-heading">
+        <h2>What Developers Are Saying</h2>
+        <p>Join thousands of developers who've switched to EffiState.</p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <p class="testimonial-text">"I've used Redux for years, but was constantly frustrated by the boilerplate. EffiState gives me the same benefits with a fraction of the code."</p>
+          <div class="testimonial-author">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Alex" class="author-avatar">
+            <div>
+              <div class="author-name">Alex Donovan</div>
+              <div class="author-title">Senior Frontend Developer</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <p class="testimonial-text">"We migrated our enterprise application from a complex Redux setup to EffiState and cut our bundle size by 40%. Everything just works faster."</p>
+          <div class="testimonial-author">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah" class="author-avatar">
+            <div>
+              <div class="author-name">Sarah Chen</div>
+              <div class="author-title">Lead Architect at TechCorp</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <p class="testimonial-text">"The array optimization methods alone made the switch worthwhile. Our performance metrics improved dramatically after moving to EffiState."</p>
+          <div class="testimonial-author">
+            <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Miguel" class="author-avatar">
+            <div>
+              <div class="author-name">Miguel Rodriguez</div>
+              <div class="author-title">Performance Engineer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="getting-started" id="getting-started">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Get Started in Seconds</h2>
+        <p>Add EffiState to your project and start building right away.</p>
+      </div>
+      <div class="code-block">
+        <pre><code>// Install EffiState
+npm install effistate
+
+// Import and use
+import { createStore } from 'effistate';
+
+// Create a store
+const store = createStore({
+  todos: [],
+  filter: 'all',
+  user: null
+});
+
+// React integration
+import { createReactHooks } from 'effistate/react';
+const { useStore, useSelector } = createReactHooks(store);
+
+// Use in components
+function TodoList() {
+  const todos = useSelector(state => state.todos);
+  return (
+    <ul>
+      {todos.map(todo => (
+        <li key={todo.id}>{todo.text}</li>
+      ))}
+    </ul>
+  );
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="container">
+      <h2>Ready to Build Faster Applications?</h2>
+      <p>Join thousands of developers who've made the switch to EffiState. Fast, lightweight state management without the headaches.</p>
+      <a href="https://github.com/effistate/effistate" class="btn">Get Started Today</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <h2>EffiState</h2>
+          <p>Ultra-fast state management for modern web applications.</p>
+          <div class="footer-social">
+            <a href="https://github.com/effistate/effistate" target="_blank"><i class="icon-github"></i></a>
+            <a href="https://discord.gg/effistate" target="_blank"><i class="icon-discord"></i></a>
+            <a href="https://twitter.com/effistate" target="_blank"><i class="icon-twitter"></i></a>
+          </div>
+        </div>
+        <div class="footer-links-container">
+          <div class="footer-links">
+            <h3>Documentation</h3>
+            <ul>
+              <li><a href="/docs/getting-started.html">Getting Started</a></li>
+              <li><a href="/docs/api-reference.html">API Reference</a></li>
+              <li><a href="/docs/examples.html">Examples</a></li>
+              <li><a href="/docs/performance.html">Performance Guide</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Community</h3>
+            <ul>
+              <li><a href="https://github.com/effistate/effistate" target="_blank">GitHub</a></li>
+              <li><a href="https://discord.gg/effistate" target="_blank">Discord</a></li>
+              <li><a href="https://twitter.com/effistate" target="_blank">Twitter</a></li>
+              <li><a href="https://stackoverflow.com/questions/tagged/effistate" target="_blank">Stack Overflow</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="/blog/index.html">Blog</a></li>
+              <li><a href="/docs/tutorials.html">Tutorials</a></li>
+              <li><a href="/docs/migration-guide.html">Migration Guide</a></li>
+              <li><a href="https://github.com/effistate/effistate/blob/main/CHANGELOG.md" target="_blank">Changelog</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2023 EffiState. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Simple tab functionality
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show correct content
+        tabContents.forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabId}-content`).classList.add('active');
+      });
+    });
+    
+    // Handle internal documentation links
+    document.querySelectorAll('a:not([target="_blank"])').forEach(link => {
+      if (link.getAttribute('href').startsWith('/') || link.getAttribute('href').startsWith('./')) {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          // Extract the path
+          const path = link.getAttribute('href');
+          
+          // Get the origin and project root
+          const origin = window.location.origin;
+          
+          // For absolute paths starting with slash, just use origin
+          // For relative paths, use current path as base
+          const fullPath = path.startsWith('/') 
+            ? origin + path
+            : origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1) + path;
+          
+          // Navigate to the page
+          window.location.href = fullPath;
+        });
+      }
+    });
+  </script>
+</body>
+</html> 
