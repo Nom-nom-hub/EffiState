@@ -31,6 +31,10 @@ export function createStore(initialState = {}, options = {}) {
   let listenerCount = 0;
   let needsListenerRefresh = false;
   
+  // For computed values
+  const computedValues = {};
+  const computeFunctions = {};
+  
   // Create maps for tracking subscriptions and dependencies
   const subscriptionMap = new Map();
   const dependencyMap = new Map();
@@ -82,10 +86,17 @@ export function createStore(initialState = {}, options = {}) {
       needsListenerRefresh = false;
     }
     
+    // Update computed values before notifying listeners
+    for (const key in computeFunctions) {
+      computedValues[key] = computeFunctions[key](newState);
+    }
+    
     // Fast path for common case (1-3 listeners)
     if (listenerCount <= 3) {
       for (let i = 0; i < listenerCount; i++) {
-        listenerArray[i](newState, oldState);
+        if (typeof listenerArray[i] === 'function') {
+          listenerArray[i](newState, oldState);
+        }
       }
       return;
     }
@@ -93,7 +104,11 @@ export function createStore(initialState = {}, options = {}) {
     // Use while loop for maximum speed with many listeners
     let i = 0;
     while (i < listenerCount) {
-      listenerArray[i++](newState, oldState);
+      if (typeof listenerArray[i] === 'function') {
+        listenerArray[i++](newState, oldState);
+      } else {
+        i++;
+      }
     }
   };
   
@@ -287,33 +302,11 @@ export function createStore(initialState = {}, options = {}) {
   };
   
   // Specialized array update function with maximum performance
-  const updateArray = (arrayKey, updater) => {
-    const array = state[arrayKey];
-    if (!array || !Array.isArray(array)) return;
-    
-    // Optimize memory usage
-    const hasListeners = listeners.size > 0;
-    
-    // Only copy if needed
-    let prevArray = null;
-    if (hasListeners) {
-      // Use fast copy technique for different array sizes
-      if (array.length < 1000) {
-        prevArray = array.slice(0);
-      } else {
-        // Faster for very large arrays
-        prevArray = Array.from(array);
-      }
-    }
-    
-    // Apply updates directly to the array
-    updater(array);
-    
-    // Notify listeners with the minimal info needed
-    if (hasListeners) {
-      notifyListeners(array, prevArray);
-    }
-    return array; // Return for chaining
+  const updateArray = (arrayKey, fn) => {
+    const array = [...(state[arrayKey] || [])];
+    const result = fn(array);
+    set({ [arrayKey]: array });
+    return result;
   };
   
   // Optimize bulk updates for maximum performance
@@ -340,12 +333,6 @@ export function createStore(initialState = {}, options = {}) {
     }
   };
   
-  // For computed values
-  let computed = {};
-  let computedFns = {};
-  // For tracking which computed values depend on which state properties
-  let computedDependencies = {};
-
   // For state history (initialize lazily)
   let history;
   let historyIndex;
@@ -365,13 +352,17 @@ export function createStore(initialState = {}, options = {}) {
    * Get computed values
    * @returns {Object} Computed values
    */
-  const getComputed = () => computed;
+  const getComputed = () => {
+    return { ...computedValues };
+  };
 
   /**
    * Get the complete state including computed values
    * @returns {Object} Complete state with computed values
    */
-  const getAll = () => ({ ...state, ...computed });
+  const getAll = () => {
+    return { ...state, ...computedValues };
+  };
 
   // Private helper function to handle history
   const _handleHistory = (changedKeys, prevState) => {
@@ -427,38 +418,8 @@ export function createStore(initialState = {}, options = {}) {
    * @param {Function} fn - The function to compute the value
    */
   const compute = (key, fn) => {
-    // Store the original function for dependency tracking
-    computedFns[key] = fn;
-    
-    // Initialize computed value
-    computed[key] = fn(state, computed);
-    
-    // Create a proxy to track which state properties this computed value uses
-    const trackStateDependencies = () => {
-      const tracked = new Set();
-      const stateProxy = new Proxy(state, {
-        get(target, prop) {
-          tracked.add(prop);
-          return target[prop];
-        }
-      });
-      
-      // Run the function with the proxy to see which properties it accesses
-      fn(stateProxy, computed);
-      
-      // Update dependency tracking
-      tracked.forEach(prop => {
-        if (!computedDependencies[prop]) {
-          computedDependencies[prop] = new Set();
-        }
-        computedDependencies[prop].add(key);
-      });
-    };
-    
-    // Run tracking
-    trackStateDependencies();
-    
-    return { key, fn };
+    computeFunctions[key] = fn;
+    computedValues[key] = fn(state);
   };
 
   /**
@@ -482,22 +443,16 @@ export function createStore(initialState = {}, options = {}) {
    * @returns {Boolean} Whether undo was successful
    */
   const undo = () => {
-    if (historyEnabled && historyIndex > 0) {
-      historyIndex--;
-      
-      // Apply the stored changes in reverse
-      const historyEntry = history[historyIndex + 1];
-      Object.keys(historyEntry).forEach(key => {
-        state[key] = historyEntry[key];
-      });
-      
-      // Update computed values after state change
-      updateComputed();
-      
-      listeners.forEach(listener => listener(state));
-      return true;
+    if (!historyEnabled || historyIndex <= 0) {
+      return false;
     }
-    return false;
+    
+    historyIndex--;
+    const previousState = history[historyIndex];
+    
+    // Replace state without adding to history
+    replace(previousState);
+    return true;
   };
 
   /**
@@ -505,46 +460,44 @@ export function createStore(initialState = {}, options = {}) {
    * @returns {Boolean} Whether redo was successful
    */
   const redo = () => {
-    if (historyEnabled && historyIndex < history.length - 1) {
-      historyIndex++;
-      
-      // Apply the stored changes for this step
-      const historyEntry = history[historyIndex];
-      Object.keys(historyEntry).forEach(key => {
-        state[key] = historyEntry[key];
-      });
-      
-      // Update computed values after state change
-      updateComputed();
-      
-      listeners.forEach(listener => listener(state));
-      return true;
+    if (!historyEnabled || historyIndex >= history.length - 1) {
+      return false;
     }
-    return false;
+    
+    historyIndex++;
+    const nextState = history[historyIndex];
+    
+    // Replace state without adding to history
+    replace(nextState);
+    return true;
   };
 
   // Ultra-fast replacement for entire objects or arrays
-  const replace = (key, newValue) => {
-    if (state[key] === newValue) return;
-    const oldValue = state[key];
-    state[key] = newValue;
+  const replace = (newState) => {
+    // Similar to set but doesn't add to history
+    const oldState = { ...state };
     
-    // Notify with minimal object creation
-    if (listeners.size > 0) {
-      notifyListeners(state, { [key]: oldValue });
+    // Update state directly
+    for (const key in state) {
+      if (!(key in newState)) {
+        delete state[key];
+      }
     }
+    
+    for (const key in newState) {
+      state[key] = newState[key];
+    }
+    
+    // Notify listeners but don't add to history
+    notifyListeners(state, oldState);
   };
 
   // Create a lite version with just the essentials for max performance
   const createLiteVersion = () => {
-    // Strip out history, computed values, devtools, etc.
     return {
       get,
       set,
-      subscribe,
-      bulkUpdate,
-      updateArray,
-      replace
+      subscribe
     };
   };
 
@@ -657,16 +610,22 @@ export function createStore(initialState = {}, options = {}) {
   // Create the store object
   const store = {
     get,
+    getComputed,
+    getAll,
     set,
     subscribe,
+    compute,
+    enableHistory,
+    undo,
+    redo,
     bulkUpdate,
     updateArray,
     replace,
+    createLiteVersion,
     getState: get, // Alias for Redux compatibility
     dispatch: set, // Alias for Redux compatibility
     
     // Enhanced API methods
-    enableHistory,
     enablePersistence,
     createSelector,
     createAsyncAction,
@@ -674,9 +633,11 @@ export function createStore(initialState = {}, options = {}) {
     // Array operations
     array: {
       push: (arrayKey, ...items) => {
-        const array = [...(state[arrayKey] || []), ...items];
-        set({ [arrayKey]: array });
-        return array;
+        return updateArray(arrayKey, arr => {
+          const originalLength = arr.length;
+          arr.push(...items);
+          return { inserted: items, index: originalLength };
+        });
       },
       filter: (arrayKey, predicate) => {
         return updateArray(arrayKey, arr => {
