@@ -89,7 +89,7 @@ export function createStore(initialState = {}, options = {}) {
     // Update computed values before notifying listeners
     for (const key in computeFunctions) {
       try {
-        computedValues[key] = computeFunctions[key](state);
+        computedValues[key] = computeFunctions[key](newState || state);
       } catch (e) {
         console.error(`Error computing value for ${key}:`, e);
       }
@@ -410,7 +410,11 @@ export function createStore(initialState = {}, options = {}) {
     }
   };
 
-  // Enable history tracking for undo/redo
+  /**
+   * Enable history tracking for time-travel
+   * @param {number} limit - Max number of history entries
+   * @returns {Object} History control methods
+   */
   const enableHistory = (limit) => {
     if (historyEnabled) return { undo, redo };
     
@@ -435,27 +439,31 @@ export function createStore(initialState = {}, options = {}) {
     return result;
   };
 
-  // Update undo and redo functions
-  /**
-   * Undo the last state change
-   * @returns {boolean} Whether undo was successful
-   */
+  // Update undo function
   const undo = () => {
     if (!historyEnabled || historyIndex <= 0) {
       return false;
     }
     
-    // Move back in history
-    historyIndex--;
-    const prevState = history[historyIndex];
+    // Clone to avoid modifying history
+    const prevStateCopy = JSON.parse(JSON.stringify(history[historyIndex]));
     
-    // Apply previous state without adding to history
+    // Save current state
     const oldState = { ...state };
-    Object.keys(state).forEach(key => delete state[key]);
-    Object.assign(state, JSON.parse(JSON.stringify(prevState)));
     
-    // Notify listeners but don't add to history
+    // Replace state entirely with previous state
+    Object.keys(state).forEach(key => {
+      delete state[key];
+    });
+    
+    // Copy previous state to current state
+    Object.keys(prevStateCopy).forEach(key => {
+      state[key] = prevStateCopy[key];
+    });
+    
+    // Notify listeners with old state
     notifyListeners(state, oldState);
+    
     return true;
   };
 
@@ -831,12 +839,15 @@ export function createSelector(storeOrFn, selectorFn) {
     
     let lastResult;
     let lastState;
+    let lastStateCopy; // Deep reference check
     
     const selector = () => {
       const currentState = store.get();
-      if (currentState !== lastState) {
+      // Deep equality check for nested properties
+      if (JSON.stringify(currentState) !== JSON.stringify(lastStateCopy)) {
         lastResult = selectFn(currentState);
         lastState = currentState;
+        lastStateCopy = JSON.parse(JSON.stringify(currentState));
       }
       return lastResult;
     };
@@ -844,6 +855,7 @@ export function createSelector(storeOrFn, selectorFn) {
     // Initialize
     lastResult = selectFn(store.get());
     lastState = store.get();
+    lastStateCopy = JSON.parse(JSON.stringify(lastState));
     
     return selector;
   } else {
