@@ -466,7 +466,6 @@ export function createStore(initialState = {}, options = {}) {
     
     // Get previous state
     historyIndex--;
-    
     const prevState = history[historyIndex];
     
     // Keep track of old state for notifications
@@ -483,7 +482,7 @@ export function createStore(initialState = {}, options = {}) {
       state[key] = deepCopy[key];
     }
     
-    // We need to manually update computed values here
+    // Update computed values
     for (const key in computeFunctions) {
       computedValues[key] = computeFunctions[key](state);
     }
@@ -777,7 +776,9 @@ export function withLogger(store) {
     ...store,
     set: (newState) => {
       const prevState = store.get();
+      console.log('Previous State:', prevState);
       originalSet(newState);
+      console.log('New State:', store.get());
     }
   };
 }
