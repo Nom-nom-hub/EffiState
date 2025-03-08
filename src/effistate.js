@@ -358,16 +358,27 @@ export function createStore(initialState = {}, options = {}) {
   const get = () => state;
 
   /**
+   * Compute a derived value from state
+   * @param {string} key - Key for the computed value
+   * @param {Function} fn - Function to compute the value
+   */
+  const compute = (key, fn) => {
+    computeFunctions[key] = fn;
+    // Compute initial value
+    computedValues[key] = fn(state);
+  };
+
+  /**
    * Get computed values
-   * @returns {Object} Computed values
+   * @returns {Object} Object containing all computed values
    */
   const getComputed = () => {
     return { ...computedValues };
   };
 
   /**
-   * Get the complete state including computed values
-   * @returns {Object} Complete state with computed values
+   * Get all state including computed values
+   * @returns {Object} Combined state and computed values
    */
   const getAll = () => {
     return { ...state, ...computedValues };
