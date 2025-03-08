@@ -125,8 +125,8 @@ export function createStore(initialState = {}, options = {}) {
     return obj;
   };
   
-  // Extremely optimized set function using V8 optimization techniques
-  const set = (newState) => {
+  // Create a modifiable set function
+  let setImplementation = (newState) => {
     // Ultra-fast empty checks
     if (!newState || typeof newState !== 'object') return;
     
@@ -235,6 +235,11 @@ export function createStore(initialState = {}, options = {}) {
     if (listeners.size > 0) {
       notifyListeners(state, prevState);
     }
+  };
+  
+  // Wrapper function that we can use to intercept calls
+  const set = (newState) => {
+    return setImplementation(newState);
   };
   
   // Ultra-fast subscribe implementation with listener ID caching
@@ -473,10 +478,10 @@ export function createStore(initialState = {}, options = {}) {
     }
   };
 
-  // Modify set to track history
-  const originalSet = set;
-  set = (newState) => {
-    const result = originalSet(newState);
+  // Modify set implementation to track history
+  const originalSetImplementation = setImplementation;
+  setImplementation = (newState) => {
+    const result = originalSetImplementation(newState);
     if (historyEnabled) {
       addToHistory(state);
     }
