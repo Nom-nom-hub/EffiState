@@ -502,31 +502,30 @@ export function createStore(initialState = {}, options = {}) {
       return false;
     }
     
+    // Get next state
     historyIndex++;
     const nextState = history[historyIndex];
     
     // Keep track of old state for notifications
     const oldState = { ...state };
     
-    // Clear the current state
+    // Clear current state
     for (const key in state) {
       delete state[key];
     }
     
-    // Deep copy to avoid reference issues
-    const stateCopy = JSON.parse(JSON.stringify(nextState));
-    
-    // Copy state from history
-    Object.keys(stateCopy).forEach(key => {
-      state[key] = stateCopy[key];
-    });
+    // Copy next state to current state
+    const deepCopy = JSON.parse(JSON.stringify(nextState));
+    for (const key in deepCopy) {
+      state[key] = deepCopy[key];
+    }
     
     // Update computed values
     for (const key in computeFunctions) {
       computedValues[key] = computeFunctions[key](state);
     }
     
-    // Notify listeners with old state
+    // Notify listeners of state change
     notifyListeners(state, oldState, {});
     
     return true;
@@ -672,7 +671,7 @@ export function createStore(initialState = {}, options = {}) {
     get,
     getComputed,
     getAll,
-    set,
+    set: historyTrackingSet,
     subscribe,
     compute,
     enableHistory,
@@ -755,10 +754,6 @@ export function createStore(initialState = {}, options = {}) {
   if (enableDevTools) {
     store.devTools = connectToDevTools(store);
   }
-
-  // Replace the set function with one that tracks history
-  set = historyTrackingSet;
-  store.set = historyTrackingSet;
 
   // Return the completed store
   return store;
