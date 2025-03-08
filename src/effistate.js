@@ -79,7 +79,7 @@ export function createStore(initialState = {}, options = {}) {
   };
   
   // Function bound at creation time for maximum V8 performance
-  const notifyListeners = (newState, oldState) => {
+  const notifyListeners = (newState, oldState, updates) => {
     if (needsListenerRefresh) {
       listenerArray = Array.from(listeners);
       listenerCount = listenerArray.length;
@@ -89,7 +89,7 @@ export function createStore(initialState = {}, options = {}) {
     // Update computed values before notifying listeners
     for (const key in computeFunctions) {
       try {
-        computedValues[key] = computeFunctions[key](newState || state);
+        computedValues[key] = computeFunctions[key](state);
       } catch (e) {
         console.error(`Error computing value for ${key}:`, e);
       }
@@ -131,6 +131,9 @@ export function createStore(initialState = {}, options = {}) {
   
   // Create a modifiable set function
   let setImplementation = (newState) => {
+    // Make a copy of the updates for later reference
+    const updates = { ...newState };
+    
     // Ultra-fast empty checks
     if (!newState || typeof newState !== 'object') return;
     
@@ -158,7 +161,7 @@ export function createStore(initialState = {}, options = {}) {
       
       // Fast notification
       if (oldState && hasListeners) {
-        notifyListeners(state, oldState);
+        notifyListeners(state, oldState, updates);
       }
       return;
     }
@@ -177,7 +180,7 @@ export function createStore(initialState = {}, options = {}) {
       
       // Highly optimized notification
       if (listeners.size > 0) {
-        notifyListeners(state, { [key]: prevValue });
+        notifyListeners(state, { [key]: prevValue }, updates);
       }
       return;
     }
@@ -237,7 +240,7 @@ export function createStore(initialState = {}, options = {}) {
     
     // Fastest possible listener notification
     if (listeners.size > 0) {
-      notifyListeners(state, prevState);
+      notifyListeners(state, prevState, updates);
     }
   };
   
@@ -338,7 +341,7 @@ export function createStore(initialState = {}, options = {}) {
     if (captureSnapshot && (prevStateSize !== newStateSize || JSON.stringify(state).length !== origJsonLen)) {
       // Only now create the snapshot, using fastest copy technique
       snapshot = Object.assign({}, state);
-      notifyListeners(state, snapshot);
+      notifyListeners(state, snapshot, {});
     }
   };
   
@@ -391,7 +394,7 @@ export function createStore(initialState = {}, options = {}) {
   const addToHistory = (stateToAdd) => {
     if (!historyEnabled) return;
     
-    // Create a deep copy to avoid mutation issues
+    // Create deep copy of state to avoid references
     const stateCopy = JSON.parse(JSON.stringify(stateToAdd));
     
     // If we're in the middle of history, truncate the future states
@@ -401,7 +404,7 @@ export function createStore(initialState = {}, options = {}) {
     
     // Add new state to history
     history.push(stateCopy);
-    historyIndex++;
+    historyIndex = history.length - 1;
     
     // Limit history size
     if (history.length > stateHistoryLimit) {
@@ -445,10 +448,11 @@ export function createStore(initialState = {}, options = {}) {
       return false;
     }
     
-    // Clone to avoid modifying history
-    const prevStateCopy = JSON.parse(JSON.stringify(history[historyIndex]));
+    // Move back in history
+    historyIndex--;
+    const prevState = history[historyIndex];
     
-    // Save current state
+    // Keep track of old state for notifications
     const oldState = { ...state };
     
     // Replace state entirely with previous state
@@ -456,13 +460,13 @@ export function createStore(initialState = {}, options = {}) {
       delete state[key];
     });
     
-    // Copy previous state to current state
-    Object.keys(prevStateCopy).forEach(key => {
-      state[key] = prevStateCopy[key];
+    // Copy state from history
+    Object.keys(prevState).forEach(key => {
+      state[key] = prevState[key];
     });
     
     // Notify listeners with old state
-    notifyListeners(state, oldState);
+    notifyListeners(state, oldState, {});
     
     return true;
   };
@@ -480,13 +484,22 @@ export function createStore(initialState = {}, options = {}) {
     historyIndex++;
     const nextState = history[historyIndex];
     
-    // Apply next state without adding to history
+    // Keep track of old state for notifications
     const oldState = { ...state };
-    Object.keys(state).forEach(key => delete state[key]);
-    Object.assign(state, JSON.parse(JSON.stringify(nextState)));
     
-    // Notify listeners but don't add to history
-    notifyListeners(state, oldState);
+    // Replace state entirely with next state
+    Object.keys(state).forEach(key => {
+      delete state[key];
+    });
+    
+    // Copy state from history
+    Object.keys(nextState).forEach(key => {
+      state[key] = nextState[key];
+    });
+    
+    // Notify listeners with old state
+    notifyListeners(state, oldState, {});
+    
     return true;
   };
 
@@ -507,7 +520,7 @@ export function createStore(initialState = {}, options = {}) {
     }
     
     // Notify listeners but don't add to history
-    notifyListeners(state, oldState);
+    notifyListeners(state, oldState, {});
   };
 
   // Create a lite version with just the essentials for max performance
